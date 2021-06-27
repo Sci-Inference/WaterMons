@@ -1,0 +1,4 @@
+
+data_connection:
+  - DATABASE_CONNECTION: "sqlite:///./water-mons.sqllite"
+  - STOCK_CONNECTION: "yahoo"

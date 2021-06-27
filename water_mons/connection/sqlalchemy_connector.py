@@ -12,7 +12,4 @@ class DBConnector(object):
 
 
     def declare_schema(self):
-        self.Base.metadata.create_all(self.con,checkfirst=True)
-
-
-    
+        self.Base.metadata.create_all(self.con,checkfirst=True)   
