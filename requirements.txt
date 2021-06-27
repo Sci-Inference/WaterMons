@@ -6,3 +6,4 @@ yfinance
 sqlalchemy
 fastapi
 uvicorn[standard]
+pyyaml
