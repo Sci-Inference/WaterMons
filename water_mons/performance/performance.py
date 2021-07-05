@@ -12,7 +12,7 @@ from water_mons.performance.utils import (
 
 
 
-def PerformanceBase(object):
+class PerformanceBase(object):
     """PerformanceBase
     This class is the base class for performance calculation.
     It contains the basic return computation and class representation.

@@ -33,7 +33,7 @@ def std(timeSeries:np.array)-> np.array:
 
 def sharpe_ratio(timeSeries:np.array, riskFree: Optional[int] = 0) -> np.array:
     _timeSeries_check(timeSeries)
-    return (number_return(timeSeries = timeSeries) - riskFree)/std(timeSeries=timeSeries)
+    return (number_return(timeSeries = timeSeries) - riskFree)/np.std(timeSeries)
 
 def sortino_ratio(timeSeries:np.array, riskFree: Optional[int] = 0)->np.array:
     _timeSeries_check(timeSeries)
