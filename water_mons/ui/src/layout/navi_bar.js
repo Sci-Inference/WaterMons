@@ -1,85 +1,50 @@
 
-// import React from 'react';
-// import PropTypes from 'prop-types';
-// import { makeStyles } from '@material-ui/core/styles';
-// import AppBar from '@material-ui/core/AppBar';
-// import Tabs from '@material-ui/core/Tabs';
-// import Tab from '@material-ui/core/Tab';
-// import Typography from '@material-ui/core/Typography';
-// import Box from '@material-ui/core/Box';
+import React from 'react';
+import PropTypes from 'prop-types';
+import { makeStyles } from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import {
+    BrowserRouter as Router,
+    Switch,
+    useHistory,
+    Route,
+    Link
+} from "react-router-dom";
 
-// function TabPanel(props) {
-//   const { children, value, index, ...other } = props;
 
-//   return (
-//     <div
-//       role="tabpanel"
-//       hidden={value !== index}
-//       id={`simple-tabpanel-${index}`}
-//       aria-labelledby={`simple-tab-${index}`}
-//       {...other}
-//     >
-//       {value === index && (
-//         <Box p={3}>
-//           <Typography>{children}</Typography>
-//         </Box>
-//       )}
-//     </div>
-//   );
-// }
+const useStyles = makeStyles((theme) => ({
+   appColor:{
+       background:"#3F9FB4",
+    },
+    tabText:{
+        textTransform: "none" ,
+        fontWeight:500
+    }
+  }));
 
-// TabPanel.propTypes = {
-//   children: PropTypes.node,
-//   index: PropTypes.any.isRequired,
-//   value: PropTypes.any.isRequired,
-// };
+function App_Bar() {
+    const classes = useStyles();
+    let history = useHistory();
+    const [value, setValue] = React.useState(0);
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+        history.push(newValue.toLowerCase())
+    };
+    return (
+        <div>
+            <AppBar position="static" className={classes.appColor}>
+                <Tabs value={value} onChange={handleChange} centered variant="fullWidth">
+                    <Tab label='Portfolio' value='portfolio' className={classes.tabText}/>
+                    <Tab label='Strategy' value='strategy' className={classes.tabText}/>
+                    <Tab label='Back Test' value='back-test' className={classes.tabText}/>
+                    <Tab label='Risk Assessment' value='assessment' className={classes.tabText}/>
+                </Tabs>
+            </AppBar>
+        </div>
+    )
+}
 
-// function a11yProps(index) {
-//   return {
-//     id: `simple-tab-${index}`,
-//     'aria-controls': `simple-tabpanel-${index}`,
-//   };
-// }
 
-// const useStyles = makeStyles((theme) => ({
-//   root: {
-//     flexGrow: 1,
-//     backgroundColor: theme.palette.background.paper,
-//   },
-// }));
-
-// export default function SimpleTabs() {
-//   const classes = useStyles();
-//   const [value, setValue] = React.useState(0);
-
-//   const handleChange = (event, newValue) => {
-//     setValue(newValue);
-//   };
-
-//   return (
-//     <div className={classes.root}>
-//       <AppBar position="static">
-//         <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
-//           <Tab label="Item One" {...a11yProps(0)} />
-//           <Tab label="Item Two" {...a11yProps(1)} />
-//           <Tab label="Item Three" {...a11yProps(2)} />
-//         </Tabs>
-//       </AppBar>
-//       <TabPanel value={value} index={0}>
-//         Item One
-//       </TabPanel>
-//       <TabPanel value={value} index={1}>
-//         Item Two
-//       </TabPanel>
-//       <TabPanel value={value} index={2}>
-//         Item Three
-//       </TabPanel>
-//     </div>
-//   );
-// }
-
-// function App_Bar(){
-//     return
-// }
-
-// export default App_Bar;
+export default  App_Bar ;

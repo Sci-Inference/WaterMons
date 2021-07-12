@@ -9,54 +9,46 @@ import {
   Link
 } from "react-router-dom";
 
-
 function Home() {
   return <h2>Home</h2>;
 }
 
-function About() {
-  return <h2>About</h2>;
+function Portfolio() {
+  return <h2>Portfolio</h2>;
 }
-
-function Users() {
-  return <h2>Users</h2>;
+function Strategy() {
+  return <h2>Strategy</h2>;
 }
-
-
-
+function BackTest() {
+  return <h2>Back</h2>;
+}
+function RiskAssessment() {
+  return <h2>Risk</h2>;
+}
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-      <Router>
-      <div>
-        <nav>
-          <ul>
-            <li>
-              <Link to="/">Home</Link>
-            </li>
-            <li>
-              <Link to="/about">About</Link>
-            </li>
-            <li>
-              <Link to="/users">Users</Link>
-            </li>
-          </ul>
-        </nav>
-        <Switch>
-          <Route path="/about">
-            <About />
-          </Route>
-          <Route path="/users">
-            <Users />
-          </Route>
-          <Route path="/">
-            <Home />
-          </Route>
-        </Switch>
-      </div>
-    </Router>
+        <Router>
+          <div>
+            <App_Bar />
+            <Switch>
+              <Route path="/portfolio">
+                <Portfolio />
+              </Route>
+              <Route path="/strategy">
+                <Strategy />
+              </Route>
+              <Route path="/back-test">
+                <BackTest />
+              </Route>
+              <Route path="/assessment">
+                <RiskAssessment />
+              </Route>
+            </Switch>
+          </div>
+        </Router>
       </header>
     </div>
   );
