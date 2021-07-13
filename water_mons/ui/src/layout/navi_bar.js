@@ -17,6 +17,7 @@ import {
 const useStyles = makeStyles((theme) => ({
    appColor:{
        background:"#3F9FB4",
+       marginBottom: "3%"
     },
     tabText:{
         textTransform: "none" ,

@@ -8,13 +8,16 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import Portfolio_Landing_Page from './portfolio/landing_page'
+
+
 
 function Home() {
   return <h2>Home</h2>;
 }
 
 function Portfolio() {
-  return <h2>Portfolio</h2>;
+  return <Portfolio_Landing_Page/>;
 }
 function Strategy() {
   return <h2>Strategy</h2>;
