@@ -8,8 +8,8 @@ import {
   Route,
   Link
 } from "react-router-dom";
-import Portfolio_Landing_Page from './portfolio/landing_page'
-
+import Portfolio_Landing_Page from './portfolio/landing_page';
+import Portfolio_Detail_Page from './portfolio/detail_page';
 
 
 function Home() {
@@ -17,7 +17,8 @@ function Home() {
 }
 
 function Portfolio() {
-  return <Portfolio_Landing_Page/>;
+  // return <Portfolio_Landing_Page/>;
+  return <Portfolio_Detail_Page/>
 }
 function Strategy() {
   return <h2>Strategy</h2>;
