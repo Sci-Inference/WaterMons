@@ -9,8 +9,8 @@ import Line_Chart from '../utils/line_chart';
 
 
 
-const weight = 700;
-const height = 500;
+let weight = 700;
+let height = 600;
 const startDate = '2021-01-01';
 const endDate = '2021-01-10';
 const data = [
@@ -21,7 +21,11 @@ const data = [
     {"Date":'2021-01-05',"Base":14,"Benchmark":6},
     {"Date":'2021-01-06',"Base":15,"Benchmark":1},
 ];
-const margin=50;
+let margin=50;
+const dataColor =[
+    {'time':'Date',"name":"Base","color":"black",'dot':'blue'},
+    {'time':'Date',"name":"Benchmark","color":"red",'dot':'black'},
+];
 
 
 
@@ -39,6 +43,7 @@ class Portfolio_Detail_Page extends React.Component{
             height={height}
             data={data}
             margin={margin}
+            dataColor={dataColor}
             />
         </div>)
     }
