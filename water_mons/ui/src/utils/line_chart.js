@@ -14,6 +14,7 @@ class Line_Chart extends React.Component {
     this.draw_legends = this.draw_legends.bind(this);
     this.get_max = this.get_max.bind(this);
     this.get_min = this.get_min.bind(this);
+    this.get_tooltips = this.get_tooltips.bind(this);
     this.myRef = React.createRef();
   }
 
@@ -65,7 +66,32 @@ class Line_Chart extends React.Component {
     return res
   }
 
+  get_tooltips(selection,pgx,pgy,textElement){
 
+    console.log(pgy)
+    let tooltipsPosY =  (pgy > this.props.height)? pgy*0.7:pgy*0.6;
+    let tooltipsPosX =  (pgx > this.props.width)? pgx*0.7:pgx*0.6;
+    console.log(tooltipsPosY)
+    let tooltips = selection.append('g').attr('id','tooltips')
+    tooltips.append('rect')
+    .attr('width',150)
+    .attr('height',70)
+    .attr('x',tooltipsPosX)
+    .attr('y',tooltipsPosY)
+    .attr('fill','white')
+
+    let info =  Object.entries(textElement);
+    info.forEach(
+      (k,i)=>{
+        tooltips
+        .append('text')
+        .attr('x',tooltipsPosX)
+        .attr('y',tooltipsPosY+(i*20)+20)
+        .text(()=>{return `${k[0]}:${k[1]}`})
+      }
+    )
+    
+  }
 
   get_canvas() {
     let h = this.props.height + (this.props.margin * 2);
@@ -86,7 +112,10 @@ class Line_Chart extends React.Component {
       .attr('height', h);
 
 
-    svg.append('rect')
+    svg
+      .append('g')
+      .attr('id','canvas')
+      .append('rect')
       .attr("transform", `translate(30,0)`)
       .attr('width', this.props.width)
       .attr('height', this.props.height)
@@ -116,6 +145,7 @@ class Line_Chart extends React.Component {
         .tickSize(-this.props.width, tickNum)
         .tickFormat("")
       )
+
     return { svg, x, y }
 
   }
@@ -141,7 +171,6 @@ class Line_Chart extends React.Component {
 
   draw_line(selection, x, y, xName, yName, color = 'black', dotColor = 'black', showLegend = true) {
 
-  
     selection.append('path')
     .attr("transform", "translate(30,0)")
     .datum(this.props.data)
@@ -163,14 +192,15 @@ class Line_Chart extends React.Component {
       .attr("cy", function (d) { return y(d[yName]) })
       .attr("r", 2.5)
       .style("fill", dotColor)
-
   }
+
 
   draw() {
     let get_canvas = this.get_canvas();
     let svg = get_canvas.svg;
     let x = get_canvas.x;
     let y = get_canvas.y;
+   
 
     this.props.dataColor.forEach((element, i) => {
       svg.call(
@@ -183,6 +213,19 @@ class Line_Chart extends React.Component {
             element.name, element.color)
         })
     });
+
+    svg.selectAll('circle').on('mouseover',
+    (e,j)=>{
+      this.get_tooltips(svg,e.pageX,e.pageY,j);
+      console.log(e)
+      console.log(j)
+    }
+    )
+    svg.selectAll('circle').on(
+      'mouseout',
+      ()=>{d3.select('#tooltips').remove()})
+
+
   }
 
   render() {

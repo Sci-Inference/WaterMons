@@ -6,7 +6,7 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import Data_Table from '../utils/data_table';
 import Line_Chart from '../utils/line_chart';
-
+import Bar_Chart from '../utils/barchart'
 
 
 let weight = 700;
@@ -19,7 +19,7 @@ const data = [
     {"Date":'2021-01-03',"Base":12,"Benchmark":10},
     {"Date":'2021-01-04',"Base":13,"Benchmark":5},
     {"Date":'2021-01-05',"Base":14,"Benchmark":6},
-    {"Date":'2021-01-06',"Base":15,"Benchmark":1},
+    {"Date":'2021-01-06',"Base":15,"Benchmark":12},
 ];
 let margin=50;
 const dataColor =[
@@ -36,7 +36,7 @@ class Portfolio_Detail_Page extends React.Component{
 
     render(){
         return(<div>
-            <Line_Chart 
+            <Bar_Chart 
             startDate={startDate} 
             endDate={endDate} 
             width={weight} 
