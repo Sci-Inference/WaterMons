@@ -14,6 +14,7 @@ class Bar_Chart extends React.Component{
         this.draw = this.draw.bind(this);
         this.get_canvas = this.get_canvas.bind(this);
         this.draw_bar = this.draw_bar.bind(this);
+        this.draw_legends = this.draw_legends.bind(this);
     }
 
     get_max(){
@@ -45,6 +46,7 @@ class Bar_Chart extends React.Component{
             }
           }
         });
+        res = (res > 0)?0:res;
         return res
       }
 
@@ -60,16 +62,43 @@ class Bar_Chart extends React.Component{
 
 
     draw_bar(selection,x,y,barName){
+      console.log(this.get_min());
         selection.append('g')
         .selectAll('g')
         .data(this.props.data)
         .join('rect')
         .attr('x',(d,i)=>{return x(new Date(d.Date))})
-        .attr('y',(d,i)=>{return y(d.Base)})
         .attr('stroke-width',1.5)
         .attr("dy", ".71em")
-        .attr("height", d => this.props.height- y(d[barName]))
         .attr("width", (this.props.width/this.props.data.length)/10)
+        .attr('y',(d,i)=>{return (d.Base > 0)?y(0):y(0)})
+        .attr('height',0)
+        .transition()
+        .ease(d3.easeLinear)
+        .duration(2000)
+        .attr('y',(d,i)=>{return (d.Base < 0)?y(0):y(d.Base)})
+        .attr("height",(d)=> {
+          let res =  (d[barName]>0)?y(0)- y(d[barName]):y(d[barName])-y(0)
+          return res
+        })
+    }
+
+    draw_legends(svg, xpos, ypos, Name, color) {
+      svg.append("rect")
+        .attr("x", xpos)
+        .attr("y", ypos)
+        .attr("width", this.props.height * 0.01)
+        .attr('height', this.props.height * 0.01)
+        .style("fill", color)
+        .attr("alignment-baseline", "middle")
+  
+      svg
+        .append("text")
+        .attr("x", xpos * 1.03)
+        .attr("y", ypos * 1.1)
+        .text(Name)
+        .style("font-size", "10px")
+        .attr("alignment-baseline", "middle")
     }
 
 
@@ -81,6 +110,7 @@ class Bar_Chart extends React.Component{
       get_canvas() {
         let h = this.props.height + (this.props.margin * 2);
         let w = this.props.width + (this.props.margin * 2);
+
         let tickNum = Math.ceil(Math.sqrt(this.props.data.length));
         let adjStartDate = new Date(this.props.startDate)
         adjStartDate.setDate(adjStartDate.getDate()-1)
@@ -112,7 +142,7 @@ class Bar_Chart extends React.Component{
           .attr("transform", "translate(30,0)")
           .call(d3.axisLeft(y))
           .append('g')
-          .attr("transform", `translate(0,${this.props.height})`)
+          .attr("transform", `translate(0,${y(0)})`)
           .call(d3.axisBottom(x).tickSize(10));
     
         svg.append("g")
@@ -143,11 +173,12 @@ class Bar_Chart extends React.Component{
         let svg = get_canvas.svg;
         let x = get_canvas.x;
         let y = get_canvas.y;
-        this.props.dataColor.forEach(
-            (element,i)=>{
-                this.draw_bar(svg,x,y,element.name);
-            }
-        );
+        this.draw_bar(svg,x,y,'Base');
+        // this.props.dataColor.forEach(
+        //     (element,i)=>{
+        //         this.draw_bar(svg,x,y,element.name);
+        //     }
+        // );
     }
 
     render(){

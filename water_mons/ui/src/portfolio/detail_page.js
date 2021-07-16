@@ -15,8 +15,8 @@ const startDate = '2021-01-01';
 const endDate = '2021-01-10';
 const data = [
     {"Date":'2021-01-01',"Base":10,"Benchmark":20},
-    {"Date":'2021-01-02',"Base":11,"Benchmark":12},
-    {"Date":'2021-01-03',"Base":12,"Benchmark":10},
+    {"Date":'2021-01-02',"Base":-11,"Benchmark":12},
+    {"Date":'2021-01-03',"Base":-12,"Benchmark":10},
     {"Date":'2021-01-04',"Base":13,"Benchmark":5},
     {"Date":'2021-01-05',"Base":14,"Benchmark":6},
     {"Date":'2021-01-06',"Base":15,"Benchmark":12},
