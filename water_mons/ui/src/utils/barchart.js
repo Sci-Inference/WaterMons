@@ -132,7 +132,7 @@ class Bar_Chart extends React.Component {
       .scaleBand()
       .domain(dateTimeList)
       .rangeRound([0, this.props.width])
-      .padding([0.2]);
+      .padding([this.props.width/1000]);
 
     var sx = d3
       .scaleBand()
