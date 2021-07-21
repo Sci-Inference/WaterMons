@@ -2,6 +2,7 @@ import React from "react";
 import Button from "@material-ui/core/Button";
 import {
   makeStyles,
+  createMuiTheme,
   ThemeProvider,
 } from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
@@ -76,7 +77,7 @@ class Portfolio_Landing_Page extends React.Component {
     const { path, url } = this.props.match;
     return Data_Table(rows, columns, (e) => {
       console.log(e.row.name);
-      this.props.history.push(`${path}/${e.row.name}`);
+      this.props.history.push(`${path}/detail/${e.row.name}`);
     });
   }
 

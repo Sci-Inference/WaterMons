@@ -38,7 +38,8 @@ function App() {
             <Switch>
               <Route path="/portfolio" component={Portfolio_Landing_Page}>
                 <Route exact path="/portfolio" component={Portfolio_Landing_Page}/>
-                <Route path="/portfolio/:name" component={Portfolio_Detail_Page}/>
+                <Route exact path="/portfolio/create" component={BackTest}/>
+                <Route path="/portfolio/detail/:name" component={Portfolio_Detail_Page}/>
               </Route>
               <Route path="/strategy">
                 <Strategy />
