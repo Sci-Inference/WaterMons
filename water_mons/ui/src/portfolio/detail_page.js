@@ -1,16 +1,9 @@
 import React from "react";
 import Button from "@material-ui/core/Button";
-import {
-  makeStyles,
-  withStyles,
-  createTheme,
-  ThemeProvider,
-} from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Data_Table from "../utils/data_table";
 import Line_Chart from "../utils/line_chart";
 import Bar_Chart from "../utils/barchart";
-import Paper from "@material-ui/core/Paper";
 import DateFnsUtils from "@date-io/date-fns";
 import {
   MuiPickersUtilsProvider,
@@ -19,17 +12,14 @@ import {
 import TextField from "@material-ui/core/TextField";
 import FormControl from "@material-ui/core/FormControl";
 import DeleteIcon from "@material-ui/icons/Delete";
-import Drawer from "@material-ui/core/Drawer";
 import Box from "@material-ui/core/Box";
-
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
 
-let weight = 700;
-let height = 600;
+
 const startDate = "2021-01-01";
 const endDate = "2021-01-10";
 const data = [

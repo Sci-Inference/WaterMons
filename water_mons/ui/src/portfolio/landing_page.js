@@ -2,10 +2,7 @@ import React from "react";
 import Button from "@material-ui/core/Button";
 import {
   makeStyles,
-  withStyles,
-  createTheme,
   ThemeProvider,
-  createMuiTheme,
 } from "@material-ui/core/styles";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import Container from "@material-ui/core/Container";
@@ -13,16 +10,9 @@ import Grid from "@material-ui/core/Grid";
 import Data_Table from "../utils/data_table";
 import Box from "@material-ui/core/Box";
 import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
   withRouter,
 } from "react-router-dom";
-import Portfolio_Detail_Page from "./detail_page";
 
-function DetailPage() {
-  return <h1>1232</h1>;
-}
 
 class Portfolio_Landing_Page extends React.Component {
   constructor(props) {
@@ -91,7 +81,6 @@ class Portfolio_Landing_Page extends React.Component {
   }
 
   render() {
-    const { path, url } = this.props.match;
     return (
       <div>
         <Container>
