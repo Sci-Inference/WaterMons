@@ -129,11 +129,12 @@ class Portfolio_Detail_Page extends React.Component {
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
     this.OnClick_deleteSelectedBenchmark =
-      this.OnClick_deleteSelectedBenchmark.bind(this);
+    this.OnClick_deleteSelectedBenchmark.bind(this);
     this.state = {
       startDate: new Date("2021-01-01"),
       endDate: new Date("2021-01-01"),
       benchmarkList: new Array(),
+      strategyName:props.match.params.name
     };
   }
 
@@ -294,27 +295,27 @@ class Portfolio_Detail_Page extends React.Component {
               </Box>
           </Grid>
 
-          <Grid item sm={6}>
-            <Grid>
-              <Box m={0} mb={0}>
+          <Grid sm={6}>
+            <Grid item sm={6}>
+              <Box m={5} mb={0}>
                 <Bar_Chart
                   startDate={startDate}
                   endDate={endDate}
-                  width={full_width * 0.9}
-                  height={full_width * 0.5 * 0.7}
+                  width={full_width * 0.8}
+                  height={full_width * 0.5 * 0.9}
                   data={data}
                   margin={10}
                   dataColor={dataColor}
                 />
               </Box>
             </Grid>
-            <Grid>
-              <Box m={0}>
+            <Grid item sm={6}>
+              <Box m={5}>
                 <Line_Chart
                   startDate={startDate}
                   endDate={endDate}
-                  width={full_width * 0.9}
-                  height={full_width * 0.5 * 0.7}
+                  width={full_width * 0.8}
+                  height={full_width * 0.5 * 0.9}
                   data={data}
                   margin={10}
                   dataColor={dataColor}

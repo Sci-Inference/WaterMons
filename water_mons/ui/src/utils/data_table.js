@@ -3,13 +3,14 @@ import { DataGrid } from '@material-ui/data-grid';
 
 
 
-function Data_Table(rows,columns) {
+function Data_Table(rows,columns,onCellClick) {
     return(
             <DataGrid
         rows={rows}
         columns={columns}
         autoPageSize
         autoHeight
+        onCellClick={onCellClick}
       />
     )
 }

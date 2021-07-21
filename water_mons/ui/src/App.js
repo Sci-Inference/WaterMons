@@ -9,16 +9,14 @@ import {
   Link
 } from "react-router-dom";
 import Portfolio_Landing_Page from './portfolio/landing_page';
-import Portfolio_Detail_Page from './portfolio/detail_page';
-
+import Portfolio_Detail_Page from "./portfolio/detail_page"
 
 function Home() {
   return <h2>Home</h2>;
 }
 
 function Portfolio() {
-  // return <Portfolio_Landing_Page/>;
-  return <Portfolio_Detail_Page/>
+  return <Portfolio_Landing_Page/>;
 }
 function Strategy() {
   return <h2>Strategy</h2>;
@@ -38,8 +36,9 @@ function App() {
           <div>
             <App_Bar />
             <Switch>
-              <Route path="/portfolio">
-                <Portfolio />
+              <Route path="/portfolio" component={Portfolio_Landing_Page}>
+                <Route exact path="/portfolio" component={Portfolio_Landing_Page}/>
+                <Route path="/portfolio/:name" component={Portfolio_Detail_Page}/>
               </Route>
               <Route path="/strategy">
                 <Strategy />

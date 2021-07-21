@@ -33,7 +33,7 @@ function App_Bar() {
     const [value, setValue] = React.useState(0);
     const handleChange = (event, newValue) => {
         setValue(newValue);
-        history.push(newValue.toLowerCase())
+        history.push(`/${newValue.toLowerCase()}`)
     };
     return (
         <div>
