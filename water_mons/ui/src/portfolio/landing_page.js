@@ -82,20 +82,6 @@ class Portfolio_Landing_Page extends React.Component {
     ];
   }
 
-  create_route(path) {
-    let res = this.rows.map((d) => {
-      console.log(path);
-      return (
-        // <Route path={`${path}/:${d.name}`} >
-        <Route path="/task">
-          <Portfolio_Detail_Page />
-        </Route>
-      );
-    });
-    console.log(res);
-    return res;
-  }
-
   create_table(rows, columns) {
     const { path, url } = this.props.match;
     return Data_Table(rows, columns, (e) => {

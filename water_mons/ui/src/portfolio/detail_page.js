@@ -225,10 +225,13 @@ class Portfolio_Detail_Page extends React.Component {
     return (
       <div>
         <Grid container spacing={12}>
-          <Grid item sm={3}></Grid>
+          <Grid item container sm={12} justifyContent="center">
+            <h1>Portfolio: {this.state.strategyName}</h1>
+            </Grid>
+          <Grid item sm={1}></Grid>
           <Grid
             item
-            sm={6}
+            sm={10}
             justifyContent="center"
             alignItems="center"
             container
@@ -244,10 +247,7 @@ class Portfolio_Detail_Page extends React.Component {
                 </div>
               </AccordionSummary>
               <AccordionDetails>
-                <Grid item sm={6} alignContent="center" container>
-                  {this.createSelectedBenchmark()}
-                </Grid>
-                <Grid item sm={6} container>
+                <Grid item sm={10} container>
                   <FormControl>
                     <TextField
                       id="benchmark_text_field"
@@ -258,23 +258,41 @@ class Portfolio_Detail_Page extends React.Component {
                   </FormControl>
                   {this.create_date_range_filter()}
                 </Grid>
+                <Grid item sm={10} alignContent="center" container>
+                  {this.createSelectedBenchmark()}
+                </Grid>
               </AccordionDetails>
             </Accordion>
           </Grid>
-          <Grid item sm={3}></Grid>
-          <Grid item sm={12}>
+          <Grid item sm={1}></Grid>
+          <Grid item sm={6}>
             <Box m={5}>
               <Line_Chart
                 startDate={startDate}
                 endDate={endDate}
-                width={full_width}
-                height={full_width * 0.5 + 20}
+                width={full_width * 0.8}
+                height={full_width * 0.5 *0.9}
                 data={data}
                 margin={10}
                 dataColor={dataColor}
               />
             </Box>
           </Grid>
+
+          <Grid item sm={6}>
+              <Box m={5}>
+                <Bar_Chart
+                  startDate={startDate}
+                  endDate={endDate}
+                  width={full_width * 0.8}
+                  height={full_width * 0.5 * 0.9}
+                  data={data}
+                  margin={10}
+                  dataColor={dataColor}
+                />
+              </Box>
+          </Grid>
+
 
           <Grid sm={12}>
               <Box m={5}>
@@ -294,39 +312,12 @@ class Portfolio_Detail_Page extends React.Component {
                 </Accordion>
               </Box>
           </Grid>
-
-          <Grid sm={6}>
-            <Grid item sm={6}>
-              <Box m={5} mb={0}>
-                <Bar_Chart
-                  startDate={startDate}
-                  endDate={endDate}
-                  width={full_width * 0.8}
-                  height={full_width * 0.5 * 0.9}
-                  data={data}
-                  margin={10}
-                  dataColor={dataColor}
-                />
-              </Box>
-            </Grid>
-            <Grid item sm={6}>
-              <Box m={5}>
-                <Line_Chart
-                  startDate={startDate}
-                  endDate={endDate}
-                  width={full_width * 0.8}
-                  height={full_width * 0.5 * 0.9}
-                  data={data}
-                  margin={10}
-                  dataColor={dataColor}
-                />
-              </Box>
-            </Grid>
-          </Grid>
-          <Grid item sm={6}>
+          <Grid item sm={3}></Grid>
+          <Grid item sm={6} alignContent="center">
             <Box m={0}>{this.create_table(rows, columns)}</Box>
           </Grid>
         </Grid>
+        <Grid item sm={3}></Grid>
       </div>
     );
   }
