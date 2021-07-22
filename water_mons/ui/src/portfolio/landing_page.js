@@ -13,12 +13,15 @@ import Box from "@material-ui/core/Box";
 import {
   withRouter,
 } from "react-router-dom";
+import CreateIcon from '@material-ui/icons/Create';
 
 
 class Portfolio_Landing_Page extends React.Component {
   constructor(props) {
     super(props);
     this.create_table = this.create_table.bind(this);
+    this.handleCreateButton = this.handleCreateButton.bind(this);
+    this.handleInsertButton = this.handleInsertButton.bind(this);
     this.theme = createMuiTheme({
       palette: {
         primary: {
@@ -81,24 +84,46 @@ class Portfolio_Landing_Page extends React.Component {
     });
   }
 
+  handleCreateButton(){
+    const { path, url } = this.props.match;
+    this.props.history.push(`${path}/create`);
+  }
+
+  handleInsertButton(){
+    const { path, url } = this.props.match;
+    this.props.history.push(`${path}/insert`);
+  }
+
   render() {
     return (
       <div>
         <Container>
-          <Grid container spacing={12}>
-            <Grid item xs={1} className={this.styleClass.root}>
+          <Grid spacing={12}>
+            <Grid sm={8} container className={this.styleClass.root} direction={'row'}>
               <ThemeProvider theme={this.theme}>
-                <Box pb={5}>
+                <Grid sm={3}>
                   <Button
                     variant="contained"
                     color={"primary"}
                     startIcon={<AddCircleOutlineIcon />}
+                    onClick={this.handleCreateButton}
                   >
                     Create
                   </Button>
-                </Box>
+                </Grid>
+                <Grid sm={3}>
+                  <Button
+                    variant="contained"
+                    color={"primary"}
+                    startIcon={<CreateIcon />}
+                    onClick={this.handleInsertButton}
+                  >
+                    Insert
+                  </Button>
+                </Grid>
               </ThemeProvider>
             </Grid>
+            <br/>
             <Grid item xs={12} alignContent={"center"}>
               {this.create_table(this.rows, this.columns)}
             </Grid>
