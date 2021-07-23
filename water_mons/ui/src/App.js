@@ -11,6 +11,9 @@ import {
 import Portfolio_Landing_Page from './portfolio/landing_page';
 import Portfolio_Detail_Page from "./portfolio/detail_page"
 import Portfolio_Create_Page from './portfolio/create_page';
+import Portfolio_Insert_Page from './portfolio/insert_page';
+
+
 
 function Home() {
   return <h2>Home</h2>;
@@ -40,6 +43,7 @@ function App() {
               <Route path="/portfolio" component={Portfolio_Landing_Page}>
                 <Route exact path="/portfolio" component={Portfolio_Landing_Page}/>
                 <Route exact path="/portfolio/create" component={Portfolio_Create_Page}/>
+                <Route exact path="/portfolio/insert" component={Portfolio_Insert_Page}/>
                 <Route path="/portfolio/detail/:name" component={Portfolio_Detail_Page}/>
               </Route>
               <Route path="/strategy">
