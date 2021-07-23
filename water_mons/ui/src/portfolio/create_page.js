@@ -53,18 +53,23 @@ class Portfolio_Create_Page extends React.Component {
     this.appendInput = this.appendInput.bind(this);
     this.create_stock_list = this.create_stock_list.bind(this);
     this.removeInput = this.removeInput.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
     this.theme = createMuiTheme({
       palette: {
         primary: {
           main: "#0D0C0C",
           contrastText: "#A5A5A5",
         },
+        secondary:{
+          main:"#E9E9E9",
+          contrastText: "#A5A5A5",
+        }
       },
     });
   }
 
   appendInput() {
-    var newInput = `input-${this.state.inputs.length}`;
+    var newInput = `portfolio_name${this.state.inputs.length}`;
     this.setState((prevState) => ({
       inputs: prevState.inputs.concat([newInput]),
     }));
@@ -74,6 +79,36 @@ class Portfolio_Create_Page extends React.Component {
     this.setState((prevState) => ({
       inputs: prevState.inputs.length > 1 ? prevState.inputs.slice(-1) : [],
     }));
+  }
+
+
+  handleSubmit(){
+    let alertMsg = null
+    let portfolioName = document.querySelector('#portfolio_name').value;
+    let desc = document.querySelector('#description').value;
+    if (portfolioName=='' && (alertMsg ===null)) {alertMsg = 'portfolio name is requirement'};
+    if (desc=='' && (alertMsg ===null)) {alertMsg = 'portfolio description is requirement'};
+
+    let stockInfo = this.state.inputs.map((d)=>{
+      let tmp = {
+        'stock_name':document.querySelector(`#${d}-ticker`).value,
+        'stock_date':document.querySelector(`#${d}-date`).value,
+        'stock_option':document.querySelector(`#${d}-option`).innerText,
+        'stock_number':document.querySelector(`#${d}-number`).value,
+        'stock_price':document.querySelector(`#${d}-price`).value,
+      }
+      for (const [key, value] of Object.entries(tmp)) {
+        if(((value == '') || (value===undefined))&& (alertMsg ===null)) {alertMsg=`${key} is required`};
+        if((key=='stock_option') && (alertMsg ===null)){
+          console.log(value)
+          if((value!= 'buy') && (value!='sell')) {alertMsg=`${key} is required`}
+        }
+      }
+    })
+    if(alertMsg != null){
+      alert(alertMsg);
+    }
+    console.log(stockInfo);
   }
 
   create_stock_list() {
@@ -132,11 +167,11 @@ class Portfolio_Create_Page extends React.Component {
     return (
       <div>
         <Grid justifyContent="center" alignContent="center" spacing={12}>
-            <Grid item contianer sm={2}>
-                <Box m={3}>
-                    <Typography variant={'h6'}>Create New Portfolio</Typography>
-                </Box>
-            </Grid>
+          <Grid item contianer sm={2}>
+            <Box m={3}>
+              <Typography variant={"h6"}>Create New Portfolio</Typography>
+            </Box>
+          </Grid>
           <Grid item container sm={8}>
             <Grid sm={3}>
               <Box m={3}>
@@ -151,14 +186,14 @@ class Portfolio_Create_Page extends React.Component {
           </Grid>
           <Grid item container sm={8}>
             <Grid sm={3}>
-                <Box m={5}>
-                    <Typography>Description</Typography>
-                </Box>
+              <Box m={5}>
+                <Typography>Description</Typography>
+              </Box>
             </Grid>
             <Grid sm={6}>
-                <Box m={5}>
-                    <TextField id="description" multiline rows={3} />
-                </Box>
+              <Box m={5}>
+                <TextField id="description" multiline rows={3} />
+              </Box>
             </Grid>
           </Grid>
           <Grid item container sm={8}>
@@ -188,6 +223,17 @@ class Portfolio_Create_Page extends React.Component {
             </Paper>
           )}
         </Box>
+        <Grid sm={2}>
+          <ThemeProvider theme={this.theme}>
+            <Button
+              color={"secondary"}
+              onClick={this.handleSubmit}
+              variant='contained'
+            >
+              Submit
+            </Button>
+          </ThemeProvider>
+        </Grid>
       </div>
     );
   }
