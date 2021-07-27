@@ -22,6 +22,7 @@ class Portfolio_Landing_Page extends React.Component {
     this.create_table = this.create_table.bind(this);
     this.handleCreateButton = this.handleCreateButton.bind(this);
     this.handleInsertButton = this.handleInsertButton.bind(this);
+    this.state = {'rows':[]}
     this.theme = createMuiTheme({
       palette: {
         primary: {
@@ -52,28 +53,27 @@ class Portfolio_Landing_Page extends React.Component {
         editable: true,
       },
       {
-        field: "create",
+        field: "createdDate",
         headerName: "Create",
         type: "date",
-        width: 150,
+        width: 200,
         editable: true,
       },
     ];
 
-    this.rows = [
-      {
-        id: 1,
-        name: "Industry",
-        description: "Industry Leader",
-        create: "2021-01-02",
-      },
-      {
-        id: 2,
-        name: "Technical",
-        description: "Tenical Indicator Selection",
-        create: "2021-01-01",
-      },
-    ];
+    this.rows = []
+  }
+
+  async componentDidMount() {
+    let data = await fetch('http://localhost:5000/db/getPortfolio')
+      .then(res => res.json())
+    let rows = data.map((element,index)=>{
+        element['id'] = index
+        return element
+    })
+    console.log(rows)
+    this.setState({'rows':rows})
+    console.log(this.state.rows);
   }
 
   create_table(rows, columns) {
@@ -125,7 +125,7 @@ class Portfolio_Landing_Page extends React.Component {
             </Grid>
             <br/>
             <Grid item xs={12} alignContent={"center"}>
-              {this.create_table(this.rows, this.columns)}
+              {this.create_table(this.state.rows, this.columns)}
             </Grid>
           </Grid>
         </Container>

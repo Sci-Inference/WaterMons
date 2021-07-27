@@ -1,19 +1,17 @@
 import os
 import yaml
+import json
 import datetime
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
+from flask import request
+from flask import Response
+from flask_cors import CORS, cross_origin
 from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
-from flask import request
-import json
-from flask import Response
 
 app = Flask(__name__, static_folder='../ui/build')
-
-
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 def read_config():
     with open("config.yaml", 'r') as stream:
@@ -40,7 +38,7 @@ def get_portfolio():
     session = dbc.session()
     db_data = list(map(lambda x: dbc.sqlalchmey_to_dict(x),session.query(Portfolio).all()))
     session.close()
-    return Response(json.dumps(db_data),mimetype='application/json')
+    return Response(json.dumps(db_data,default=str),mimetype='application/json')
 
 
 @app.route('/db/createPortfolio')
@@ -53,6 +51,13 @@ def create_portfolio():
         createdDate=request.form['createdDate']
         )
     return "200"
+
+@app.route('/db/createPortfolioStocks')
+def create_portfolio_stocks():
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    dbc = DBConnector(conStr)
+    data = json.loads(request.args.get())
+    return "not finisthed yet"
 
 
 
