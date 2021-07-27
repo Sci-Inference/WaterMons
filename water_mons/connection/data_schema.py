@@ -1,34 +1,26 @@
+import sqlalchemy
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.sql.sqltypes import DateTime, INTEGER
+from sqlalchemy.sql.sqltypes import DateTime, INTEGER,TEXT
 from sqlalchemy import Column, Integer, String,DATETIME,FLOAT,null,ForeignKey
-
 
 
 Base = declarative_base()
 
 
-class Stock(Base):
-    __tablename__='stock'
+class Portfolio_Stock(Base):
+    __tablename__='portfolio_stock'
     ticker = Column('ticker',String,primary_key= True)
     createdDate = Column('created',DateTime)
-    purchasePrice = Column('purchased_price',FLOAT,default=null)
-    purchaseNumber = Column('purchased_number',INTEGER,default=0)
-    strategy = relationship("Strategy")
-    strategy = relationship("Portfolio")
-
-class Strategy(Base):
-    __tablename__ = 'strategy'
-    name = Column('strategy_name',String)
-    createdDate = Column('created',DATETIME)
-    strategyId = Column('strategy_id',Integer,primary_key=True)
-    stockId = Column(Integer, ForeignKey('stock.ticker'))
+    purchasePrice = Column('purchased_price',FLOAT,default=null,nullable=True)
+    purchaseNumber = Column('purchased_number',INTEGER,default=0,nullable=True)
+    portfolio_name = Column(Integer, ForeignKey('portfolio.portfolio_name'))
 
 
 class Portfolio(Base):
     __tablename__ = 'portfolio'
-    name = Column('portfolio_name',String)
+    name = Column('portfolio_name',String,primary_key=True)
+    description = Column('description',TEXT)
     createdDate = Column('created',DATETIME)
-    portfolioId = Column('portfolio_id',Integer,primary_key=True)
-    stockId = Column(Integer, ForeignKey('stock.ticker'))
-
+    stock = relationship("Portfolio_Stock")
+    
