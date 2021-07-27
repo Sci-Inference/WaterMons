@@ -33,11 +33,11 @@ class Test_DBConnector:
         dbc.create_portfolio(**data)
         createdDate = datetime.datetime.strptime('2021-01-01','%Y-%m-%d')
         stocks = [
-            {'ticker':'C.TO','createdDate':createdDate,'purchasePrice':1.0,'purchaseNumber':2,'portfolio_name':'p1'},
-            {'ticker':'B.TO','createdDate':createdDate,'purchasePrice':1.2,'purchaseNumber':2,'portfolio_name':'p1'},
-            {'ticker':'GESC.TO','createdDate':createdDate,'purchasePrice':1.3,'purchaseNumber':2,'portfolio_name':'p1'},
-            {'ticker':'A.TO','createdDate':createdDate,'purchasePrice':1.4,'purchaseNumber':2,'portfolio_name':'p1'},
-            {'ticker':'AA.To','createdDate':createdDate,'purchasePrice':1.4,'purchaseNumber':2,'portfolio_name':'p1'},
+            {'ticker':'C.TO','createdDate':createdDate,'purchasePrice':1.0,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
+            {'ticker':'B.TO','createdDate':createdDate,'purchasePrice':1.2,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
+            {'ticker':'GESC.TO','createdDate':createdDate,'purchasePrice':1.3,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
+            {'ticker':'A.TO','createdDate':createdDate,'purchasePrice':1.4,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
+            {'ticker':'AA.To','createdDate':createdDate,'purchasePrice':1.4,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
         ]
         dbc.insert_portfolio_stocks(stocks)
 

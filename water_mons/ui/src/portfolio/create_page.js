@@ -22,6 +22,7 @@ import { Container } from "@material-ui/core";
 import RemoveCircleOutlineIcon from "@material-ui/icons/RemoveCircleOutline";
 import NumberFormat from "react-number-format";
 import { Paper } from "@material-ui/core";
+import { fi } from "date-fns/locale";
 
 function NumberFormatCustom(props) {
   const { inputRef, onChange, ...other } = props;
@@ -82,7 +83,7 @@ class Portfolio_Create_Page extends React.Component {
   }
 
 
-  handleSubmit(){
+  async handleSubmit(){
     let alertMsg = null
     let portfolioName = document.querySelector('#portfolio_name').value;
     let desc = document.querySelector('#description').value;
@@ -91,11 +92,11 @@ class Portfolio_Create_Page extends React.Component {
 
     let stockInfo = this.state.inputs.map((d)=>{
       let tmp = {
-        'stock_name':document.querySelector(`#${d}-ticker`).value,
-        'stock_date':document.querySelector(`#${d}-date`).value,
+        'ticker':document.querySelector(`#${d}-ticker`).value,
+        'createdDate':document.querySelector(`#${d}-date`).value,
         'stock_option':document.querySelector(`#${d}-option`).innerText,
-        'stock_number':document.querySelector(`#${d}-number`).value,
-        'stock_price':document.querySelector(`#${d}-price`).value,
+        'purchaseNumber':document.querySelector(`#${d}-number`).value,
+        'purchasePrice':document.querySelector(`#${d}-price`).value,
       }
       for (const [key, value] of Object.entries(tmp)) {
         if(((value == '') || (value===undefined))&& (alertMsg ===null)) {alertMsg=`${key} is required`};
@@ -104,11 +105,40 @@ class Portfolio_Create_Page extends React.Component {
           if((value!= 'buy') && (value!='sell')) {alertMsg=`${key} is required`}
         }
       }
+      tmp['portfolio_name'] = portfolioName
+      return tmp
     })
     if(alertMsg != null){
       alert(alertMsg);
+      return
     }
-    console.log(stockInfo);
+
+    let today = new Date()
+    let portfolioData = {
+      "name":portfolioName,
+      "description":desc,
+      "createdDate": `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+    }
+
+    let createPortRes = await fetch("http://localhost:5000/db/createPortfolio",{
+      method:"POST",
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify(portfolioData)
+    })
+
+    // console.log(createPortRes);
+    if(stockInfo.length > 0 && createPortRes.status==200){
+      await fetch("http://localhost:5000/db/createPortfolioStocks",{
+      method:"POST",
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify(stockInfo)
+    })
+    }
+
   }
 
   create_stock_list() {

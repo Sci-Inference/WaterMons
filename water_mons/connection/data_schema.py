@@ -13,6 +13,7 @@ class Portfolio_Stock(Base):
     uuidColumn = Column('stock_id',INTEGER,primary_key=True, autoincrement=True)
     ticker = Column('ticker',String)
     createdDate = Column('created',DateTime)
+    stock_option = Column('option',String)
     purchasePrice = Column('purchased_price',FLOAT,default=null,nullable=True)
     purchaseNumber = Column('purchased_number',INTEGER,default=0,nullable=True)
     portfolio_name = Column(Integer, ForeignKey('portfolio.portfolio_name'))

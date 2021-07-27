@@ -11,7 +11,7 @@ from water_mons.connection.sqlalchemy_connector import DBConnector
 
 app = Flask(__name__, static_folder='../ui/build')
 cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+# app.config['CORS_HEADERS'] = 'Content-Type'
 
 def read_config():
     with open("config.yaml", 'r') as stream:
@@ -41,23 +41,29 @@ def get_portfolio():
     return Response(json.dumps(db_data,default=str),mimetype='application/json')
 
 
-@app.route('/db/createPortfolio')
+@app.route('/db/createPortfolio',methods=['POST','GET'])
 def create_portfolio():
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     dbc = DBConnector(conStr)
+    data = request.json
+    print(data['createdDate'])
     dbc.create_portfolio(
-        name=request.form['name'],
-        description=request.form['description'],
-        createdDate=request.form['createdDate']
+        name=data['name'],
+        description=data['description'],
+        createdDate=datetime.datetime.strptime(data['createdDate'],'%Y-%m-%d')
         )
     return "200"
 
-@app.route('/db/createPortfolioStocks')
+@app.route('/db/createPortfolioStocks',methods=['POST'])
 def create_portfolio_stocks():
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     dbc = DBConnector(conStr)
-    data = json.loads(request.args.get())
-    return "not finisthed yet"
+    data = request.json
+    print(data)
+    for i in data:
+        i['createdDate'] = datetime.datetime.strptime(i['createdDate'],'%Y-%m-%d')
+    dbc.insert_portfolio_stocks(data)
+    return "200"
 
 
 
