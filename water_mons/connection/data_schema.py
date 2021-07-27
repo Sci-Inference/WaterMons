@@ -10,7 +10,8 @@ Base = declarative_base()
 
 class Portfolio_Stock(Base):
     __tablename__='portfolio_stock'
-    ticker = Column('ticker',String,primary_key= True)
+    uuidColumn = Column('stock_id',INTEGER,primary_key=True, autoincrement=True)
+    ticker = Column('ticker',String)
     createdDate = Column('created',DateTime)
     purchasePrice = Column('purchased_price',FLOAT,default=null,nullable=True)
     purchaseNumber = Column('purchased_number',INTEGER,default=0,nullable=True)

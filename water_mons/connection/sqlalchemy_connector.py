@@ -6,6 +6,7 @@ from water_mons.connection.data_schema import *
 from water_mons.connection.data_schema import *
 from sqlalchemy.ext.declarative import declarative_base
 from typing import Dict,List
+from sqlalchemy import inspect
 
 
 class DBConnector(object):
@@ -17,7 +18,6 @@ class DBConnector(object):
 
     def declare_schema(self)->None:
         self.Base.metadata.create_all(self.con,checkfirst=True)   
-
 
     def create_portfolio(self,name:str,description:str,createdDate:datetime.datetime=datetime.datetime.now())->None:
         session = self.session()
@@ -36,3 +36,9 @@ class DBConnector(object):
             data.append(Portfolio_Stock(**i))
         session.bulk_save_objects(data)
         session.commit()
+
+    def sqlalchmey_to_dict(self,obj):
+        return {c.key: getattr(obj, c.key)
+            for c in inspect(obj).mapper.column_attrs}
+
+    

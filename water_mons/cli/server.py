@@ -7,7 +7,9 @@ from sqlalchemy import create_engine
 from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
-
+from flask import request
+import json
+from flask import Response
 
 app = Flask(__name__, static_folder='../ui/build')
 
@@ -34,14 +36,23 @@ def serve(path):
 @app.route('/db/getPortfolio')
 def get_portfolio():
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
-    query = select(Portfolio)
-    return "200"
+    dbc = DBConnector(conStr)
+    session = dbc.session()
+    db_data = list(map(lambda x: dbc.sqlalchmey_to_dict(x),session.query(Portfolio).all()))
+    session.close()
+    return Response(json.dumps(db_data),mimetype='application/json')
 
 
 @app.route('/db/createPortfolio')
 def create_portfolio():
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    dbc = DBConnector(conStr)
+    dbc.create_portfolio(
+        name=request.form['name'],
+        description=request.form['description'],
+        createdDate=request.form['createdDate']
+        )
     return "200"
-
 
 
 

@@ -23,8 +23,7 @@ class Test_DBConnector:
         session = dbc.session()
         db_data = session.query(Portfolio).all()
         for i in db_data:
-            for j in data:
-                assert dict(i.__dict__)[j] == data[j]
+            dbc.sqlalchmey_to_dict(i) == data
         session.close()
 
     @pytest.mark.dependency(depends=["test_portfolio_table"])
@@ -43,5 +42,5 @@ class Test_DBConnector:
         dbc.insert_portfolio_stocks(stocks)
 
 
-    def teardown_method(self):
-        os.remove('./water-mons.sqllite')
+    # def teardown_method(self):
+    #     os.remove('./water-mons.sqllite')
