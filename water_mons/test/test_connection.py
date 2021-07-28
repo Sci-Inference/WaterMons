@@ -3,9 +3,10 @@ import pytest
 import numpy as np
 import pandas as pd
 import datetime
-from water_mons.connection.data_schema import *
 from water_mons.performance.utils import *
+from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
+from water_mons.connection.online_stock_connector import StockConnector
 
 @pytest.fixture(scope = 'class')
 def database_setup():
@@ -42,5 +43,13 @@ class Test_DBConnector:
         dbc.insert_portfolio_stocks(stocks)
 
 
-    # def teardown_method(self):
-    #     os.remove('./water-mons.sqllite')
+    def teardown_method(self):
+        os.remove('./water-mons.sqllite')
+
+
+class Test_Stock_Connection:
+    
+    def test_get_data(self):
+        sc = StockConnector('X.TO','yahoo')
+        df = sc.get_data('2021-07-26','2021-07-28','1d')
+        assert df.Date.min().dt.strftime('%Y-%m-%d') == '2021-07-26'
