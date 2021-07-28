@@ -71,6 +71,16 @@ function NumberFormatCustom(props) {
         });
       }
 
+      async componentDidMount(){
+        let data = await fetch('http://localhost:5000/db/getPortfolio')
+        .then(res => res.json())
+      let rows = data.map((element)=>{
+          return element['name']
+      })
+      console.log(rows)
+      this.setState({'portOption':rows})
+      }
+
       appendInput() {
         var newInput = `portfolio_name${this.state.inputs.length}`;
         this.setState((prevState) => ({
@@ -84,18 +94,18 @@ function NumberFormatCustom(props) {
         }));
       }
 
-      handleSubmit(){
+      async handleSubmit(){
         let alertMsg = null
         let portfolioSelection = document.getElementById('portfolio_name').innerText;
         if (!this.state.portOption.includes(portfolioSelection)) {alertMsg='Portfolio name is required'};
         console.log(portfolioSelection)
         let stockInfo = this.state.inputs.map((d)=>{
           let tmp = {
-            'stock_name':document.querySelector(`#${d}-ticker`).value,
-            'stock_date':document.querySelector(`#${d}-date`).value,
-            'stock_option':document.querySelector(`#${d}-option`).innerText,
-            'stock_number':document.querySelector(`#${d}-number`).value,
-            'stock_price':document.querySelector(`#${d}-price`).value,
+            ticker: document.querySelector(`#${d}-ticker`).value,
+            createdDate: document.querySelector(`#${d}-date`).value,
+            stock_option: document.querySelector(`#${d}-option`).innerText,
+            purchaseNumber: document.querySelector(`#${d}-number`).value,
+            purchasePrice: document.querySelector(`#${d}-price`).value,
           }
           for (const [key, value] of Object.entries(tmp)) {
             if(((value == '') || (value===undefined))&& (alertMsg ===null)) {alertMsg=`${key} is required`};
@@ -104,11 +114,21 @@ function NumberFormatCustom(props) {
               if((value!= 'buy') && (value!='sell')) {alertMsg=`${key} is required`}
             }
           }
-        })
+          tmp["portfolio_name"] = portfolioSelection;
+          return tmp;
+        });
         if(alertMsg != null){
           alert(alertMsg);
         }
         console.log(stockInfo);
+        await fetch("http://localhost:5000/db/createPortfolioStocks", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(stockInfo),
+        });
+
       }
     
       create_stock_list() {

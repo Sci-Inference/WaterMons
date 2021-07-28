@@ -61,10 +61,10 @@ class Portfolio_Create_Page extends React.Component {
           main: "#0D0C0C",
           contrastText: "#A5A5A5",
         },
-        secondary:{
-          main:"#E9E9E9",
+        secondary: {
+          main: "#E9E9E9",
           contrastText: "#A5A5A5",
-        }
+        },
       },
     });
   }
@@ -82,63 +82,72 @@ class Portfolio_Create_Page extends React.Component {
     }));
   }
 
+  async handleSubmit() {
+    let alertMsg = null;
+    let portfolioName = document.querySelector("#portfolio_name").value;
+    let desc = document.querySelector("#description").value;
+    if (portfolioName == "" && alertMsg === null) {
+      alertMsg = "portfolio name is requirement";
+    }
+    if (desc == "" && alertMsg === null) {
+      alertMsg = "portfolio description is requirement";
+    }
 
-  async handleSubmit(){
-    let alertMsg = null
-    let portfolioName = document.querySelector('#portfolio_name').value;
-    let desc = document.querySelector('#description').value;
-    if (portfolioName=='' && (alertMsg ===null)) {alertMsg = 'portfolio name is requirement'};
-    if (desc=='' && (alertMsg ===null)) {alertMsg = 'portfolio description is requirement'};
-
-    let stockInfo = this.state.inputs.map((d)=>{
+    let stockInfo = this.state.inputs.map((d) => {
       let tmp = {
-        'ticker':document.querySelector(`#${d}-ticker`).value,
-        'createdDate':document.querySelector(`#${d}-date`).value,
-        'stock_option':document.querySelector(`#${d}-option`).innerText,
-        'purchaseNumber':document.querySelector(`#${d}-number`).value,
-        'purchasePrice':document.querySelector(`#${d}-price`).value,
-      }
+        ticker: document.querySelector(`#${d}-ticker`).value,
+        createdDate: document.querySelector(`#${d}-date`).value,
+        stock_option: document.querySelector(`#${d}-option`).innerText,
+        purchaseNumber: document.querySelector(`#${d}-number`).value,
+        purchasePrice: document.querySelector(`#${d}-price`).value,
+      };
       for (const [key, value] of Object.entries(tmp)) {
-        if(((value == '') || (value===undefined))&& (alertMsg ===null)) {alertMsg=`${key} is required`};
-        if((key=='stock_option') && (alertMsg ===null)){
-          console.log(value)
-          if((value!= 'buy') && (value!='sell')) {alertMsg=`${key} is required`}
+        if ((value == "" || value === undefined) && alertMsg === null) {
+          alertMsg = `${key} is required`;
+        }
+        if (key == "stock_option" && alertMsg === null) {
+          console.log(value);
+          if (value != "buy" && value != "sell") {
+            alertMsg = `${key} is required`;
+          }
         }
       }
-      tmp['portfolio_name'] = portfolioName
-      return tmp
-    })
-    if(alertMsg != null){
+      tmp["portfolio_name"] = portfolioName;
+      return tmp;
+    });
+    if (alertMsg != null) {
       alert(alertMsg);
-      return
+      return;
     }
 
-    let today = new Date()
+    let today = new Date();
     let portfolioData = {
-      "name":portfolioName,
-      "description":desc,
-      "createdDate": `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
-    }
+      name: portfolioName,
+      description: desc,
+      createdDate: `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`,
+    };
 
-    let createPortRes = await fetch("http://localhost:5000/db/createPortfolio",{
-      method:"POST",
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify(portfolioData)
-    })
+    let createPortRes = await fetch(
+      "http://localhost:5000/db/createPortfolio",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(portfolioData),
+      }
+    );
 
     // console.log(createPortRes);
-    if(stockInfo.length > 0 && createPortRes.status==200){
-      await fetch("http://localhost:5000/db/createPortfolioStocks",{
-      method:"POST",
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify(stockInfo)
-    })
+    if (stockInfo.length > 0 && createPortRes.status == 200) {
+      await fetch("http://localhost:5000/db/createPortfolioStocks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(stockInfo),
+      });
     }
-
   }
 
   create_stock_list() {
@@ -258,7 +267,7 @@ class Portfolio_Create_Page extends React.Component {
             <Button
               color={"secondary"}
               onClick={this.handleSubmit}
-              variant='contained'
+              variant="contained"
             >
               Submit
             </Button>
