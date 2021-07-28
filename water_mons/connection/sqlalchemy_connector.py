@@ -1,12 +1,11 @@
 import datetime
 import numpy as np
+from typing import Dict,List
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from water_mons.connection.data_schema import *
-from water_mons.connection.data_schema import *
 from sqlalchemy.ext.declarative import declarative_base
-from typing import Dict,List
-from sqlalchemy import inspect
 
 
 class DBConnector(object):
@@ -37,7 +36,7 @@ class DBConnector(object):
         session.bulk_save_objects(data)
         session.commit()
 
-    def sqlalchmey_to_dict(self,obj):
+    def sqlalchmey_to_dict(self,obj) -> dict:
         return {c.key: getattr(obj, c.key)
             for c in inspect(obj).mapper.column_attrs}
 

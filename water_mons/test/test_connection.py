@@ -51,5 +51,16 @@ class Test_Stock_Connection:
     
     def test_get_data(self):
         sc = StockConnector('X.TO','yahoo')
-        df = sc.get_data('2021-07-26','2021-07-28','1d')
-        assert df.Date.min().dt.strftime('%Y-%m-%d') == '2021-07-26'
+        df = sc.get_data('2021-07-26','2021-07-27','1d')
+        assert df.Date.min().strftime('%Y-%m-%d') == '2021-07-26'
+        assert df.Date.max().strftime('%Y-%m-%d') == '2021-07-27'
+
+        df = sc.get_data('2021-07-23','2021-07-24','1d')
+        assert df.Date.min().strftime('%Y-%m-%d') == '2021-07-23'
+        assert df.Date.max().strftime('%Y-%m-%d') == '2021-07-23'
+
+        df = sc.get_data('2021-07-21','2021-07-21','1d')
+        assert df.Date.min().strftime('%Y-%m-%d') == '2021-07-21'
+        assert df.Date.max().strftime('%Y-%m-%d') == '2021-07-21'
+
+

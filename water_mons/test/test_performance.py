@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from water_mons.performance.utils import *
 from water_mons.performance.performance import PerformanceBase
-
+from water_mons.performance.portfolio import Portfolio
 
 
 @pytest.fixture
@@ -82,3 +82,21 @@ class Test_Performance_PerformanceBase:
         pb = PerformanceBase(data)
         pb.performance()
         pb
+
+
+
+
+class Test_Portfolio:
+    
+    def test_create_portfolio(self):
+        p = Portfolio('yahoo')
+        p.append_ticker('CG.TO','2021-07-21','buy',9.37,1)
+        p.append_ticker('CG.TO','2021-07-22','sell',9.5,1)
+        p.append_ticker('CG.TO','2021-07-23','buy',9.32,1)
+        res = p.create_portfolio()
+        print(res)
+
+
+
+    def test_create_portfolio_gain(self):
+        pass
