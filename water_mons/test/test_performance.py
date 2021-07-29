@@ -93,10 +93,24 @@ class Test_Portfolio:
         p.append_ticker('CG.TO','2021-07-21','buy',9.37,1)
         p.append_ticker('CG.TO','2021-07-22','sell',9.5,1)
         p.append_ticker('CG.TO','2021-07-23','buy',9.32,1)
+        p.append_ticker('X.TO','2021-07-23','buy',134.5,2)
+        p.append_ticker('X.TO','2021-07-26','sell',134.2,1)
+        p.append_ticker('X.TO','2021-07-27','sell',134.6,1)
+        p.append_ticker('X.TO','2021-07-27','buy',134.5,1)
+        p.pad_tickers()
         res = p.create_portfolio()
         print(res)
+        result = [
+            {'Date':'2021-07-21','portfolio_value':9.55,'holding':0},
+            {'Date':'2021-07-22','portfolio_value':0,'holding':9.5},
+            {'Date':'2021-07-23','portfolio_value':278.75,'holding':0.18},
+            {'Date':'2021-07-26','portfolio_value':143.89,'holding':134.38},
+            {'Date':'2021-07-27','portfolio_value':144.29,'holding':134.48},
+        ]
+
+        for i in result:
+            assert pytest.approx(res[i['Date']]['portfolio_value']) == i['portfolio_value']
+            assert pytest.approx(res[i['Date']]['holding']) == i['holding']
 
 
-
-    def test_create_portfolio_gain(self):
-        pass
+    
