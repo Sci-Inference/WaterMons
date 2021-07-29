@@ -18,10 +18,10 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
+import SelectInput from "@material-ui/core/Select/SelectInput";
 
-
-const startDate = "2021-01-01";
-const endDate = "2021-01-10";
+const startDate = "2021-07-01";
+const endDate = "2021-07-20";
 const data = [
   { Date: "2021-01-01", Base: 10, Benchmark: 20 },
   { Date: "2021-01-02", Base: -11, Benchmark: 12 },
@@ -31,6 +31,7 @@ const data = [
   { Date: "2021-01-06", Base: 15, Benchmark: 12 },
 ];
 let margin = 50;
+
 const dataColor = [
   { time: "Date", name: "Base", color: "black", dot: "blue" },
   { time: "Date", name: "Benchmark", color: "red", dot: "black" },
@@ -112,20 +113,24 @@ const rows = [
 class Portfolio_Detail_Page extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      startDate: new Date("2021-07-01"),
+      endDate: new Date("2021-07-10"),
+      benchmarkList:[],
+      strategyName: props.match.params.name,
+      rows: [],
+      chartData: [],
+      dataCategory: [],
+    };
     this.create_table = this.create_table.bind(this);
-    this.handleCompareField = this.handleCompareField.bind(this);
     this.handleendDateChange = this.handleendDateChange.bind(this);
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
+    this.fetch_stockData = this.fetch_stockData.bind(this);
     this.OnClick_deleteSelectedBenchmark =
     this.OnClick_deleteSelectedBenchmark.bind(this);
-    this.state = {
-      startDate: new Date("2021-01-01"),
-      endDate: new Date("2021-01-01"),
-      benchmarkList: new Array(),
-      strategyName:props.match.params.name
-    };
+    this.handleCompareField = this.handleCompareField.bind(this);
   }
 
   create_table(rows, columns) {
@@ -140,23 +145,82 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ endDate: date });
   }
 
+  componentDidMount(){
+    console.log(`component did mount ${this.state.benchmarkList}`)
+  }
+
+  componentDidUpdate(){
+    console.log(`component did update ${this.state.benchmarkList}`)
+  }
+
+  async fetch_stockData(queryInfo){
+    console.log('fetch')
+    const data = await fetch("http://localhost:5000/db/getStockData", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(queryInfo),
+    }).then((d)=> d.json());
+    let chartData = data.map((d) => {
+      let ticker = d["ticker"];
+      let tmp = {};
+      tmp["Date"] = d["Date"];
+      tmp[ticker] = parseFloat(d["Close"]);
+      return tmp;
+    });
+    this.setState({ chartData: chartData });
+    let uniqueCate = [...new Set(data.map((item) => item.ticker))];
+    console.log(`this state ${this.state.benchmarkList}`)
+    let dataCategory = uniqueCate.map((d) => {
+      return {
+        time: "Date",
+        name: d,
+        color: `black`,
+        dot: `blue`,
+      };
+    });
+    this.setState({ dataCategory: dataCategory });
+  }
+
+
+
   handleCompareField(e) {
     if (e.keyCode == 13) {
+      let benchmark = [...this.state.benchmarkList, e.target.value]
       this.setState({
-        benchmarkList: [...this.state.benchmarkList, e.target.value],
+        benchmarkList: benchmark,
       });
       e.target.value = "";
+
+      console.log(`benchmark ${this.state.benchmarkList}`);
+      let queryInfo = {
+        'ticker':benchmark,
+        'startDate':'2021-07-01',
+        'endDate':'2021-07-20'
+      }
+      this.fetch_stockData(queryInfo)
     }
+    this.forceUpdate()
   }
 
   OnClick_deleteSelectedBenchmark(e) {
     let selectValue = e.currentTarget.value;
+    let benchmark = [...this.state.benchmarkList].filter(
+      (d) => d != selectValue
+    )
+    console.log(`delete ${benchmark}`);
     console.log(e.currentTarget.value);
     this.setState({
-      benchmarkList: [...this.state.benchmarkList].filter(
-        (d) => d != selectValue
-      ),
+      benchmarkList: benchmark
     });
+    let queryInfo = {
+      'ticker':benchmark,
+      'startDate':'2021-07-01',
+      'endDate':'2021-07-20'
+    }
+    this.fetch_stockData(queryInfo)
+
   }
 
   createSelectedBenchmark() {
@@ -211,13 +275,14 @@ class Portfolio_Detail_Page extends React.Component {
   }
 
   render() {
+    console.log('main render')
     let full_width = window.innerWidth * 0.5;
     return (
       <div>
         <Grid container spacing={12}>
           <Grid item container sm={12} justifyContent="center">
             <h1>Portfolio: {this.state.strategyName}</h1>
-            </Grid>
+          </Grid>
           <Grid item sm={1}></Grid>
           <Grid
             item
@@ -257,11 +322,26 @@ class Portfolio_Detail_Page extends React.Component {
           <Grid item sm={1}></Grid>
           <Grid item sm={6}>
             <Box m={5}>
+              {console.log(`before render line ${this.state.benchmarkList}`)}
               <Line_Chart
                 startDate={startDate}
                 endDate={endDate}
                 width={full_width * 0.8}
-                height={full_width * 0.5 *0.9}
+                height={full_width * 0.5 * 0.9}
+                data={this.state.chartData}
+                margin={10}
+                dataColor={this.state.dataCategory}
+              />
+            </Box>
+          </Grid>
+
+          <Grid item sm={6}>
+            <Box m={5}>
+              <Bar_Chart
+                startDate={startDate}
+                endDate={endDate}
+                width={full_width * 0.8}
+                height={full_width * 0.5 * 0.9}
                 data={data}
                 margin={10}
                 dataColor={dataColor}
@@ -269,38 +349,23 @@ class Portfolio_Detail_Page extends React.Component {
             </Box>
           </Grid>
 
-          <Grid item sm={6}>
-              <Box m={5}>
-                <Bar_Chart
-                  startDate={startDate}
-                  endDate={endDate}
-                  width={full_width * 0.8}
-                  height={full_width * 0.5 * 0.9}
-                  data={data}
-                  margin={10}
-                  dataColor={dataColor}
-                />
-              </Box>
-          </Grid>
-
-
           <Grid sm={12}>
-              <Box m={5}>
-                <Accordion rounded>
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    aria-controls="panel1a-content"
-                    id="panel1a-header"
-                  >
-                    <div>
-                      <Typography>Portfolio Composition</Typography>
-                    </div>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    {this.create_table(rows, columns)}
-                  </AccordionDetails>
-                </Accordion>
-              </Box>
+            <Box m={5}>
+              <Accordion rounded>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls="panel1a-content"
+                  id="panel1a-header"
+                >
+                  <div>
+                    <Typography>Portfolio Composition</Typography>
+                  </div>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {this.create_table(rows, columns)}
+                </AccordionDetails>
+              </Accordion>
+            </Box>
           </Grid>
           <Grid item sm={3}></Grid>
           <Grid item sm={6} alignContent="center">

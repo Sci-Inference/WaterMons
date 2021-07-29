@@ -1,8 +1,8 @@
+import copy
+import numpy as np
 import pandas as pd
 from pandas.core.indexing import convert_from_missing_indexer_tuple
 from water_mons.connection.online_stock_connector import StockConnector
-import numpy as np
-import copy
 
 class Portfolio(object):
 

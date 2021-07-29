@@ -8,6 +8,7 @@ from flask_cors import CORS, cross_origin
 from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
+from water_mons.connection.online_stock_connector import StockConnector
 
 app = Flask(__name__, static_folder='../ui/build')
 cors = CORS(app)
@@ -64,6 +65,33 @@ def create_portfolio_stocks():
         i['createdDate'] = datetime.datetime.strptime(i['createdDate'],'%Y-%m-%d')
     dbc.insert_portfolio_stocks(data)
     return "200"
+
+
+@app.route("/db/getStockData",methods=['POST','GET'])
+def get_stock_data():
+    data = request.json
+    tickerList = data['ticker']
+    print(data['ticker'])
+    startDate = data['startDate']
+    endDate = data['endDate']
+    conStr = read_config()['data_connection']['STOCK_CONNECTION']
+    res = []
+    for i in tickerList:
+        dbc = StockConnector(i,conStr)
+        df = dbc.get_data(startDate,endDate)
+        df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
+        res.extend(df.to_dict('records'))
+    print(res)
+    return Response(json.dumps(res,default=str),mimetype='application/json')
+
+
+@app.route('/db/getPortfolioData')
+def get_portfolio_data():
+    return 
+
+
+
+
 
 
 

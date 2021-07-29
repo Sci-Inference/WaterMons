@@ -19,10 +19,19 @@ class Line_Chart extends React.Component {
   }
 
 
-  componentDidMount() {
-    console.log(this.props.data);
+  componentDidMount(){
     this.draw();
   }
+
+
+  componentDidUpdate(){
+    console.log(this.props.dataColor)
+    d3.select(this.myRef.current).select('svg').remove();
+    this.draw();
+  }
+
+
+
 
   make_x_gridlines(x, tickNum) {
     return d3.axisBottom(x)
