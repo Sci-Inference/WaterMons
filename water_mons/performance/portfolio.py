@@ -21,7 +21,7 @@ class Portfolio(object):
             'number':number
         })
         
-    def pad_tickers(self):
+    def pad_tickers(self)->None:
         df = pd.DataFrame(self.tickerList)
         dateList = df['date'].unique().tolist()
         tickerList = df['ticker'].unique().tolist()
@@ -33,7 +33,7 @@ class Portfolio(object):
                     self.append_ticker(i,j,None,None,0)
 
 
-    def stock_value(self,data):
+    def stock_value(self,data)->list([dict]):
         res = []
         purchaseValue = 0
         purchaseNum = 0
@@ -84,7 +84,7 @@ class Portfolio(object):
             cacheDate = i['date']
         return a,holding
 
-    def create_portfolio(self):
+    def create_portfolio(self)->dict:
         portValue = None
         df = pd.DataFrame(self.tickerList)
         holding = 0
