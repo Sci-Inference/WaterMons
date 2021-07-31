@@ -43,8 +43,8 @@ class Test_DBConnector:
         dbc.insert_portfolio_stocks(stocks)
 
 
-    def teardown_method(self):
-        os.remove('./water-mons.sqllite')
+    # def teardown_method(self):
+    #     os.remove('./water-mons.sqllite')
 
 
 class Test_Stock_Connection:

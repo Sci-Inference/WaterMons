@@ -9,6 +9,8 @@ from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
 from water_mons.connection.online_stock_connector import StockConnector
+from water_mons.performance.portfolio import Portfolio
+from sqlalchemy import and_, or_, not_
 
 app = Flask(__name__, static_folder='../ui/build')
 cors = CORS(app)
@@ -71,7 +73,6 @@ def create_portfolio_stocks():
 def get_stock_data():
     data = request.json
     tickerList = data['ticker']
-    print(data['ticker'])
     startDate = data['startDate']
     endDate = data['endDate']
     conStr = read_config()['data_connection']['STOCK_CONNECTION']
@@ -81,18 +82,38 @@ def get_stock_data():
         df = dbc.get_data(startDate,endDate)
         df['Date'] = df['Date'].dt.strftime('%Y-%m-%d')
         res.extend(df.to_dict('records'))
-    print(res)
     return Response(json.dumps(res,default=str),mimetype='application/json')
 
 
-@app.route('/db/getPortfolioData')
-def get_portfolio_data():
-    return 
-
-
-
-
-
+@app.route('/db/getPortfolioStockData',methods=['POST','GET'])
+def get_portfolio_stock_data():
+    data = request.json
+    pName = data['portfolio_name']
+    startDate = data['startDate']
+    endDate = data['endDate']
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    print(pName)
+    dbc = DBConnector(conStr)
+    session = dbc.session()
+    db_data = list(
+        map(
+            lambda x: dbc.sqlalchmey_to_dict(x),session.query(Portfolio_Stock).all()
+            )
+        )
+    session.close()
+    print(db_data)
+    conStr = read_config()['data_connection']['STOCK_CONNECTION']
+    p = Portfolio(conStr=conStr)
+    for i in db_data:
+        print(i['createdDate'].strftime('%Y-%m-%d'))
+        p.append_ticker(
+            ticker = i['ticker'],
+            createDate='2021-07-30',
+            option=i['stock_option'],
+            price=i['purchasePrice'],
+            number=i['purchaseNumber']
+            )
+    return Response(json.dumps(p.create_portfolio(),default=str),mimetype='application/json')
 
 
 def run():

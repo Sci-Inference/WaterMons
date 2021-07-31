@@ -18,10 +18,8 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
-import SelectInput from "@material-ui/core/Select/SelectInput";
 
-const startDate = "2021-07-01";
-const endDate = "2021-07-20";
+
 const data = [
   { Date: "2021-01-01", Base: 10, Benchmark: 20 },
   { Date: "2021-01-02", Base: -11, Benchmark: 12 },
@@ -116,21 +114,22 @@ class Portfolio_Detail_Page extends React.Component {
     this.state = {
       startDate: new Date("2021-07-01"),
       endDate: new Date("2021-07-10"),
-      benchmarkList:[],
+      benchmarkList: [],
       strategyName: props.match.params.name,
       rows: [],
-      chartData: [],
+      lineChartData: [],
       dataCategory: [],
     };
     this.create_table = this.create_table.bind(this);
+    this.fetch_stockData = this.fetch_stockData.bind(this);
+    this.handleCompareField = this.handleCompareField.bind(this);
     this.handleendDateChange = this.handleendDateChange.bind(this);
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
-    this.fetch_stockData = this.fetch_stockData.bind(this);
+    this.fetch_portfolioData = this.fetch_portfolioData.bind(this);
     this.OnClick_deleteSelectedBenchmark =
-    this.OnClick_deleteSelectedBenchmark.bind(this);
-    this.handleCompareField = this.handleCompareField.bind(this);
+      this.OnClick_deleteSelectedBenchmark.bind(this);
   }
 
   create_table(rows, columns) {
@@ -145,33 +144,63 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ endDate: date });
   }
 
-  componentDidMount(){
-    console.log(`component did mount ${this.state.benchmarkList}`)
+  componentDidMount() {
+    let queryInfo = {
+      'startDate':this.state.startDate,
+      'endDate':this.state.endDate,
+      'portfolio_name':this.state.strategyName
+    }
+    this.fetch_portfolioData(queryInfo)
+    console.log(`component did mount ${this.state.benchmarkList}`);
   }
 
-  componentDidUpdate(){
-    console.log(`component did update ${this.state.benchmarkList}`)
+  componentDidUpdate() {
+    console.log(`component did update ${this.state.benchmarkList}`);
   }
 
-  async fetch_stockData(queryInfo){
-    console.log('fetch')
+  async fetch_portfolioData(queryInfo){
+      const data = await fetch("http://localhost:5000/db/getPortfolioStockData",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify(queryInfo),
+      }).then((d)=> d.json());
+      console.log(data);
+  }
+
+  async fetch_stockData(queryInfo) {
     const data = await fetch("http://localhost:5000/db/getStockData", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(queryInfo),
-    }).then((d)=> d.json());
-    let chartData = data.map((d) => {
-      let ticker = d["ticker"];
+    }).then((d) => d.json());
+
+    let lineChartData = 0;
+    let devData = {};
+    data.map((d) => {
+      if (devData[d["Date"]] === undefined) {
+        let tmp = {};
+        tmp[d["ticker"]] = d["Close"];
+        devData[d["Date"]] = tmp;
+      } else {
+        devData[d["Date"]][d["ticker"]] = d["Close"];
+      }
+    });
+    lineChartData = Object.keys(devData).map((d) => {
       let tmp = {};
-      tmp["Date"] = d["Date"];
-      tmp[ticker] = parseFloat(d["Close"]);
+      tmp["Date"] = d;
+      Object.keys(devData[d]).map((k) => {
+        tmp[k] = devData[d][k];
+      });
       return tmp;
     });
-    this.setState({ chartData: chartData });
+
+    this.setState({ lineChartData: lineChartData });
     let uniqueCate = [...new Set(data.map((item) => item.ticker))];
-    console.log(`this state ${this.state.benchmarkList}`)
+    console.log(`this state ${this.state.benchmarkList}`);
     let dataCategory = uniqueCate.map((d) => {
       return {
         time: "Date",
@@ -183,44 +212,39 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ dataCategory: dataCategory });
   }
 
-
-
   handleCompareField(e) {
     if (e.keyCode == 13) {
-      let benchmark = [...this.state.benchmarkList, e.target.value]
+      let benchmark = [...this.state.benchmarkList, e.target.value];
       this.setState({
         benchmarkList: benchmark,
       });
       e.target.value = "";
-
-      console.log(`benchmark ${this.state.benchmarkList}`);
+      console.log("year", this.state.startDate);
       let queryInfo = {
-        'ticker':benchmark,
-        'startDate':'2021-07-01',
-        'endDate':'2021-07-20'
-      }
-      this.fetch_stockData(queryInfo)
+        ticker: benchmark,
+        startDate: this.state.startDate.toISOString().split("T")[0],
+        endDate: this.state.endDate.toISOString().split("T")[0],
+      };
+      this.fetch_stockData(queryInfo);
     }
-    this.forceUpdate()
   }
 
   OnClick_deleteSelectedBenchmark(e) {
     let selectValue = e.currentTarget.value;
     let benchmark = [...this.state.benchmarkList].filter(
       (d) => d != selectValue
-    )
-    console.log(`delete ${benchmark}`);
-    console.log(e.currentTarget.value);
-    this.setState({
-      benchmarkList: benchmark
-    });
-    let queryInfo = {
-      'ticker':benchmark,
-      'startDate':'2021-07-01',
-      'endDate':'2021-07-20'
-    }
-    this.fetch_stockData(queryInfo)
+    );
 
+    this.setState({
+      benchmarkList: benchmark,
+    });
+    console.log(`delete`, benchmark);
+    let queryInfo = {
+      ticker: benchmark,
+      startDate: this.state.startDate.toISOString().split("T")[0],
+      endDate: this.state.endDate.toISOString().split("T")[0],
+    };
+    this.fetch_stockData(queryInfo);
   }
 
   createSelectedBenchmark() {
@@ -236,7 +260,6 @@ class Portfolio_Detail_Page extends React.Component {
         </Button>
       );
     });
-    console.log(benchmarkList);
     return res;
   }
 
@@ -275,7 +298,6 @@ class Portfolio_Detail_Page extends React.Component {
   }
 
   render() {
-    console.log('main render')
     let full_width = window.innerWidth * 0.5;
     return (
       <div>
@@ -322,13 +344,12 @@ class Portfolio_Detail_Page extends React.Component {
           <Grid item sm={1}></Grid>
           <Grid item sm={6}>
             <Box m={5}>
-              {console.log(`before render line ${this.state.benchmarkList}`)}
               <Line_Chart
-                startDate={startDate}
-                endDate={endDate}
+                startDate={this.state.startDate.toISOString().split("T")[0]}
+                endDate={this.state.endDate.toISOString().split("T")[0]}
                 width={full_width * 0.8}
                 height={full_width * 0.5 * 0.9}
-                data={this.state.chartData}
+                data={this.state.lineChartData}
                 margin={10}
                 dataColor={this.state.dataCategory}
               />
@@ -338,13 +359,13 @@ class Portfolio_Detail_Page extends React.Component {
           <Grid item sm={6}>
             <Box m={5}>
               <Bar_Chart
-                startDate={startDate}
-                endDate={endDate}
+                startDate={this.state.startDate.toISOString().split("T")[0]}
+                endDate={this.state.endDate.toISOString().split("T")[0]}
                 width={full_width * 0.8}
                 height={full_width * 0.5 * 0.9}
-                data={data}
+                data={this.state.lineChartData}
                 margin={10}
-                dataColor={dataColor}
+                dataColor={this.state.dataCategory}
               />
             </Box>
           </Grid>

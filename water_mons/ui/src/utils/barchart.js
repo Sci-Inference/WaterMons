@@ -105,10 +105,16 @@ class Bar_Chart extends React.Component {
       .attr("alignment-baseline", "middle");
   }
 
-  componentDidMount() {
-    console.log(this.props.data);
+  componentDidMount(){
     this.draw();
   }
+
+
+  componentDidUpdate(){
+    d3.select(this.myRef.current).select('svg').remove();
+    this.draw();
+  }
+
 
   get_canvas() {
     let h = this.props.height + this.props.margin * 2;

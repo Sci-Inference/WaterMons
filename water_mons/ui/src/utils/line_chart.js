@@ -25,7 +25,6 @@ class Line_Chart extends React.Component {
 
 
   componentDidUpdate(){
-    console.log(this.props.dataColor)
     d3.select(this.myRef.current).select('svg').remove();
     this.draw();
   }
@@ -77,10 +76,8 @@ class Line_Chart extends React.Component {
 
   get_tooltips(selection,pgx,pgy,textElement){
 
-    console.log(pgy)
     let tooltipsPosY =  (pgy > this.props.height)? pgy*0.7:pgy*0.6;
     let tooltipsPosX =  (pgx > this.props.width)? pgx*0.7:pgx*0.6;
-    console.log(tooltipsPosY)
     let tooltips = selection.append('g').attr('id','tooltips')
     tooltips.append('rect')
     .attr('width',150)
