@@ -16,7 +16,7 @@ def database_setup():
 
 
 class Test_DBConnector:
-    @pytest.mark.dependency()
+    @pytest.mark.order1
     def test_portfolio_table(self,database_setup):
         dbc = database_setup
         data = {'name':'p1','description':'p1 desc','createdDate':datetime.datetime.strptime('2021-01-01','%Y-%m-%d')}
@@ -27,18 +27,14 @@ class Test_DBConnector:
             dbc.sqlalchmey_to_dict(i) == data
         session.close()
 
-    @pytest.mark.dependency(depends=["test_portfolio_table"])
+    @pytest.mark.order2
     def test_portfolio_stocks(self,database_setup):
         dbc = database_setup
-        data = {'name':'p1','description':'p1 desc','createdDate':datetime.datetime.strptime('2021-01-01','%Y-%m-%d')}
-        dbc.create_portfolio(**data)
-        createdDate = datetime.datetime.strptime('2021-01-01','%Y-%m-%d')
+        createdDate = datetime.datetime.strptime('2021-07-21','%Y-%m-%d')
+        createdDate2 = datetime.datetime.strptime('2021-07-23','%Y-%m-%d')
         stocks = [
-            {'ticker':'C.TO','createdDate':createdDate,'purchasePrice':1.0,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
-            {'ticker':'B.TO','createdDate':createdDate,'purchasePrice':1.2,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
-            {'ticker':'GESC.TO','createdDate':createdDate,'purchasePrice':1.3,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
-            {'ticker':'A.TO','createdDate':createdDate,'purchasePrice':1.4,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
-            {'ticker':'AA.To','createdDate':createdDate,'purchasePrice':1.4,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
+            {'ticker':'AT.TO','createdDate':createdDate,'purchasePrice':21.4,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
+            {'ticker':'BB.TO','createdDate':createdDate2,'purchasePrice':25.4,'purchaseNumber':2,'stock_option':'buy','portfolio_name':'p1'},
         ]
         dbc.insert_portfolio_stocks(stocks)
 

@@ -18,7 +18,7 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
-
+import getOverlappingDaysInIntervals from "date-fns/esm/fp/getOverlappingDaysInIntervals/index.js";
 
 const data = [
   { Date: "2021-01-01", Base: 10, Benchmark: 20 },
@@ -113,7 +113,7 @@ class Portfolio_Detail_Page extends React.Component {
     super(props);
     this.state = {
       startDate: new Date("2021-07-01"),
-      endDate: new Date("2021-07-10"),
+      endDate: new Date("2021-07-31"),
       benchmarkList: [],
       strategyName: props.match.params.name,
       rows: [],
@@ -146,28 +146,96 @@ class Portfolio_Detail_Page extends React.Component {
 
   componentDidMount() {
     let queryInfo = {
-      'startDate':this.state.startDate,
-      'endDate':this.state.endDate,
-      'portfolio_name':this.state.strategyName
-    }
-    this.fetch_portfolioData(queryInfo)
-    console.log(`component did mount ${this.state.benchmarkList}`);
+      startDate: this.state.startDate.toISOString().split(["T"])[0],
+      endDate: this.state.endDate.toISOString().split(["T"])[0],
+      portfolio_name: this.state.strategyName,
+      padding:true
+    };
+    let pData = this.fetch_portfolioData(queryInfo);
   }
 
   componentDidUpdate() {
     console.log(`component did update ${this.state.benchmarkList}`);
   }
 
-  async fetch_portfolioData(queryInfo){
-      const data = await fetch("http://localhost:5000/db/getPortfolioStockData",{
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify(queryInfo),
-      }).then((d)=> d.json());
-      console.log(data);
+  async fetch_portfolioData(queryInfo,withoutUpdate=false) {
+    const data = await fetch("http://localhost:5000/db/getPortfolioStockData", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(queryInfo),
+    }).then((d) => d.json());
+    this.updateStateLineChart(data);
+    this.updateStateDataCategory([{'ticker':'portfolio_value'}]);
+    return data
   }
+
+  updateStateLineChart(devData){
+
+    let orgData = this.state.lineChartData;
+    orgData.map((d)=>{
+      if (devData[d['Date']] !== undefined){
+        devData[d['Date']]['portfolio_value'] = d['portfolio_value']
+      }
+    })
+    let lineChartData = orgData;
+    if(Object.keys(devData).length >0){
+      lineChartData = Object.keys(devData).map((d) => {
+        let tmp = {};
+        tmp["Date"] = d;
+        Object.keys(devData[d]).map((k) => {
+          tmp[k] = devData[d][k];
+        });
+        return tmp;
+      });
+    }
+    else{
+      lineChartData = lineChartData.map((d)=>{
+        return {'Date':d['Date'],'portfolio_value':d['portfolio_value']}
+      })
+    }
+    lineChartData = lineChartData.sort((first,sec)=> {
+      if (first['Date'] > sec['Date']){
+        return 1
+      }
+      else{
+        return -1
+      }
+    });
+    this.setState({ lineChartData: lineChartData });
+
+  }
+  
+  updateStateDataCategory(data){
+    let uniqueCate = [...new Set(data.map((item) => item.ticker))];
+    let orgDataCate = this.state.dataCategory.map((d)=>{
+      return d['name']
+    });
+    let dataCategory = uniqueCate.map((d) => {
+    if(!orgDataCate.includes(d)){
+        return {
+          time: "Date",
+          name: d,
+          color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+          dot: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+        };
+      }
+    });
+    let orgDataCategory = this.state.dataCategory;
+    dataCategory.map((d)=>{
+      if(d !== undefined){
+        orgDataCategory.push(d)
+      }
+    })
+    for (var i = 0; i < orgDataCategory.length;i++){
+      if( (!uniqueCate.includes(orgDataCategory[i]['name'])) &&( orgDataCategory[i]['name'] !='portfolio_value')){
+        orgDataCategory.splice(i,1)
+      }
+    }
+    this.setState({ dataCategory: orgDataCategory });
+  }
+
 
   async fetch_stockData(queryInfo) {
     const data = await fetch("http://localhost:5000/db/getStockData", {
@@ -178,7 +246,6 @@ class Portfolio_Detail_Page extends React.Component {
       body: JSON.stringify(queryInfo),
     }).then((d) => d.json());
 
-    let lineChartData = 0;
     let devData = {};
     data.map((d) => {
       if (devData[d["Date"]] === undefined) {
@@ -189,27 +256,9 @@ class Portfolio_Detail_Page extends React.Component {
         devData[d["Date"]][d["ticker"]] = d["Close"];
       }
     });
-    lineChartData = Object.keys(devData).map((d) => {
-      let tmp = {};
-      tmp["Date"] = d;
-      Object.keys(devData[d]).map((k) => {
-        tmp[k] = devData[d][k];
-      });
-      return tmp;
-    });
 
-    this.setState({ lineChartData: lineChartData });
-    let uniqueCate = [...new Set(data.map((item) => item.ticker))];
-    console.log(`this state ${this.state.benchmarkList}`);
-    let dataCategory = uniqueCate.map((d) => {
-      return {
-        time: "Date",
-        name: d,
-        color: `black`,
-        dot: `blue`,
-      };
-    });
-    this.setState({ dataCategory: dataCategory });
+    this.updateStateLineChart(devData);
+    this.updateStateDataCategory(data);
   }
 
   handleCompareField(e) {
@@ -234,11 +283,9 @@ class Portfolio_Detail_Page extends React.Component {
     let benchmark = [...this.state.benchmarkList].filter(
       (d) => d != selectValue
     );
-
     this.setState({
       benchmarkList: benchmark,
     });
-    console.log(`delete`, benchmark);
     let queryInfo = {
       ticker: benchmark,
       startDate: this.state.startDate.toISOString().split("T")[0],
