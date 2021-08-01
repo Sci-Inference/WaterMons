@@ -95,7 +95,6 @@ def get_portfolio_stock_data():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     padding = data['padding']
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
-    print(pName)
     dbc = DBConnector(conStr)
     session = dbc.session()
     db_data = list(
@@ -107,7 +106,6 @@ def get_portfolio_stock_data():
             )
         )
     session.close()
-    print(db_data)
     conStr = read_config()['data_connection']['STOCK_CONNECTION']
     p = portfolio.Portfolio(conStr=conStr)
     for i in db_data:

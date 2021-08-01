@@ -20,21 +20,8 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
 import getOverlappingDaysInIntervals from "date-fns/esm/fp/getOverlappingDaysInIntervals/index.js";
 
-const data = [
-  { Date: "2021-01-01", Base: 10, Benchmark: 20 },
-  { Date: "2021-01-02", Base: -11, Benchmark: 12 },
-  { Date: "2021-01-03", Base: -12, Benchmark: 10 },
-  { Date: "2021-01-04", Base: 13, Benchmark: 5 },
-  { Date: "2021-01-05", Base: 14, Benchmark: 6 },
-  { Date: "2021-01-06", Base: 15, Benchmark: 12 },
-];
+
 let margin = 50;
-
-const dataColor = [
-  { time: "Date", name: "Base", color: "black", dot: "blue" },
-  { time: "Date", name: "Benchmark", color: "red", dot: "black" },
-];
-
 const columns = [
   {
     field: "metric",
@@ -118,6 +105,7 @@ class Portfolio_Detail_Page extends React.Component {
       strategyName: props.match.params.name,
       rows: [],
       lineChartData: [],
+      barChartData:[],
       dataCategory: [],
     };
     this.create_table = this.create_table.bind(this);
@@ -149,7 +137,7 @@ class Portfolio_Detail_Page extends React.Component {
       startDate: this.state.startDate.toISOString().split(["T"])[0],
       endDate: this.state.endDate.toISOString().split(["T"])[0],
       portfolio_name: this.state.strategyName,
-      padding:true
+      padding:true,
     };
     let pData = this.fetch_portfolioData(queryInfo);
   }
@@ -166,13 +154,16 @@ class Portfolio_Detail_Page extends React.Component {
       },
       body: JSON.stringify(queryInfo),
     }).then((d) => d.json());
+
+
+
     this.updateStateLineChart(data);
+    this.updateBarChart(data);
     this.updateStateDataCategory([{'ticker':'portfolio_value'}]);
     return data
   }
 
   updateStateLineChart(devData){
-
     let orgData = this.state.lineChartData;
     orgData.map((d)=>{
       if (devData[d['Date']] !== undefined){
@@ -204,9 +195,56 @@ class Portfolio_Detail_Page extends React.Component {
       }
     });
     this.setState({ lineChartData: lineChartData });
-
   }
-  
+
+  updateBarChart(devData){
+
+    let devDatacp = {...devData}
+    let orderedDate = Object.keys(devData).sort((a,b)=> {if (a > b) {return 1} else {return -1}})
+    orderedDate.map((d,index)=>{
+      if (index==0){ return undefined;}
+      let tmp = {}
+      Object.keys(devDatacp[d]).map((j)=>{
+        tmp[j]= devDatacp[d][j] - devDatacp[orderedDate[index-1]][j]
+      })
+      devData[d] = tmp
+    })
+    console.log(devData)
+    let orgData = this.state.barChartData;
+    orgData.map((d)=>{
+      if (devData[d['Date']] !== undefined){
+        devData[d['Date']]['portfolio_value'] = d['portfolio_value']
+      }
+    })
+    let barChartData = orgData;
+    if(Object.keys(devData).length >0){
+      barChartData = Object.keys(devData).map((d) => {
+        let tmp = {};
+        tmp["Date"] = d;
+        Object.keys(devData[d]).map((k) => {
+          tmp[k] = devData[d][k];
+        });
+        return tmp;
+      });
+    }
+    else{
+      barChartData = barChartData.map((d)=>{
+        return {'Date':d['Date'],'portfolio_value':d['portfolio_value']}
+      })
+    }
+    barChartData = barChartData.sort((first,sec)=> {
+      if (first['Date'] > sec['Date']){
+        return 1
+      }
+      else{
+        return -1
+      }
+    });
+    console.log(barChartData)
+    this.setState({ barChartData: barChartData });
+  }
+
+
   updateStateDataCategory(data){
     let uniqueCate = [...new Set(data.map((item) => item.ticker))];
     let orgDataCate = this.state.dataCategory.map((d)=>{
@@ -236,7 +274,6 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ dataCategory: orgDataCategory });
   }
 
-
   async fetch_stockData(queryInfo) {
     const data = await fetch("http://localhost:5000/db/getStockData", {
       method: "POST",
@@ -246,6 +283,13 @@ class Portfolio_Detail_Page extends React.Component {
       body: JSON.stringify(queryInfo),
     }).then((d) => d.json());
 
+    let devData = this.stock_data_to_date_dict(data);
+    this.updateStateLineChart(devData);
+    this.updateBarChart(devData);
+    this.updateStateDataCategory(data);
+  }
+
+  stock_data_to_date_dict(data) {
     let devData = {};
     data.map((d) => {
       if (devData[d["Date"]] === undefined) {
@@ -256,9 +300,7 @@ class Portfolio_Detail_Page extends React.Component {
         devData[d["Date"]][d["ticker"]] = d["Close"];
       }
     });
-
-    this.updateStateLineChart(devData);
-    this.updateStateDataCategory(data);
+    return devData;
   }
 
   handleCompareField(e) {
@@ -410,7 +452,7 @@ class Portfolio_Detail_Page extends React.Component {
                 endDate={this.state.endDate.toISOString().split("T")[0]}
                 width={full_width * 0.8}
                 height={full_width * 0.5 * 0.9}
-                data={this.state.lineChartData}
+                data={this.state.barChartData}
                 margin={10}
                 dataColor={this.state.dataCategory}
               />
