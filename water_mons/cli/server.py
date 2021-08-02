@@ -5,13 +5,13 @@ import datetime
 import pandas as pd
 from flask import request
 from flask import Response
+from sqlalchemy import and_, or_, not_
 from flask_cors import CORS, cross_origin
+from water_mons.performance import portfolio,performance
 from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
 from water_mons.connection.online_stock_connector import StockConnector
-from water_mons.performance import portfolio
-from sqlalchemy import and_, or_, not_
 
 app = Flask(__name__, static_folder='../ui/build')
 cors = CORS(app)
@@ -87,6 +87,11 @@ def get_stock_data():
     return Response(json.dumps(res,default=str),mimetype='application/json')
 
 
+
+
+
+
+
 @app.route('/db/getPortfolioStockData',methods=['POST','GET'])
 def get_portfolio_stock_data():
     data = request.json
@@ -95,6 +100,19 @@ def get_portfolio_stock_data():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     padding = data['padding']
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    portValue = get_portfolio(conStr, pName, startDate, endDate)
+    if padding:
+        print('pad')
+        dtRange = list(map(lambda x: x.strftime("%Y-%m-%d"),pd.date_range(startDate,endDate).tolist()))
+        cacheValue = {'portfolio_value':0,'holding':0}
+        for i in dtRange:
+            if i in portValue:
+                cacheValue = portValue[i]
+                continue
+            portValue[i] = cacheValue
+    return Response(json.dumps(portValue,default=str),mimetype='application/json')
+
+def get_portfolio(conStr, pName, startDate, endDate):
     dbc = DBConnector(conStr)
     session = dbc.session()
     db_data = list(
@@ -118,16 +136,18 @@ def get_portfolio_stock_data():
             number=i['purchaseNumber']
             )
     portValue = p.create_portfolio()
-    if padding:
-        print('pad')
-        dtRange = list(map(lambda x: x.strftime("%Y-%m-%d"),pd.date_range(startDate,endDate).tolist()))
-        cacheValue = {'portfolio_value':0,'holding':0}
-        for i in dtRange:
-            if i in portValue:
-                cacheValue = portValue[i]
-                continue
-            portValue[i] = cacheValue
-    return Response(json.dumps(portValue,default=str),mimetype='application/json')
+    return portValue
+
+@app.route('/db/getPerformance',methods=['POST','GET'])
+def get_portfolio_performance():
+    data = request.json
+    pName = data['portfolio_name']
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    portValue = get_portfolio(conStr, pName, startDate, endDate)
+    perform = performance.PerformanceBase(portValue,0).performance()
+    return Response(json.dumps(perform,default=str),mimetype='application/json')
 
 
 def run():
