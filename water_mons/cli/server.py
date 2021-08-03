@@ -1,6 +1,7 @@
 import os
 import yaml
 import json
+import numpy as np
 import datetime
 import pandas as pd
 from flask import request
@@ -87,11 +88,6 @@ def get_stock_data():
     return Response(json.dumps(res,default=str),mimetype='application/json')
 
 
-
-
-
-
-
 @app.route('/db/getPortfolioStockData',methods=['POST','GET'])
 def get_portfolio_stock_data():
     data = request.json
@@ -100,19 +96,10 @@ def get_portfolio_stock_data():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     padding = data['padding']
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
-    portValue = get_portfolio(conStr, pName, startDate, endDate)
-    if padding:
-        print('pad')
-        dtRange = list(map(lambda x: x.strftime("%Y-%m-%d"),pd.date_range(startDate,endDate).tolist()))
-        cacheValue = {'portfolio_value':0,'holding':0}
-        for i in dtRange:
-            if i in portValue:
-                cacheValue = portValue[i]
-                continue
-            portValue[i] = cacheValue
+    portValue = get_portfolio(conStr, pName, startDate, endDate,padding)
     return Response(json.dumps(portValue,default=str),mimetype='application/json')
 
-def get_portfolio(conStr, pName, startDate, endDate):
+def get_portfolio(conStr, pName, startDate, endDate,padding):
     dbc = DBConnector(conStr)
     session = dbc.session()
     db_data = list(
@@ -136,18 +123,65 @@ def get_portfolio(conStr, pName, startDate, endDate):
             number=i['purchaseNumber']
             )
     portValue = p.create_portfolio()
+    if padding:
+        print('pad')
+        dtRange = list(map(lambda x: x.strftime("%Y-%m-%d"),pd.date_range(startDate,endDate).tolist()))
+        cacheValue = {'portfolio_value':0,'holding':0}
+        for i in dtRange:
+            if i in portValue:
+                cacheValue = portValue[i]
+                continue
+            portValue[i] = cacheValue
     return portValue
+
+
+def performance_to_detail_rows(dataDict):
+    metricNameDict = {
+        'number_return':'Period Return',
+        'percent_return':"Period Return (%)",
+        'voltility':"Period Voltility (std.)",
+        'max_drawndown':"Max Drawdown",
+        'sharpe_ratio':"Sharpe Ratio",
+        "sortino_ratio":"Sortino Ratio"
+    }
+    res = []
+    cateList = list(dataDict.keys())
+    metricsList = list(dataDict[cateList[0]].keys())
+    for ix,v in enumerate(metricsList):
+        tmp = {}
+        tmp['id'] = ix +1
+        tmp['metric'] = metricNameDict[v]
+        for c in cateList:
+            tmp[c] = str(np.round(dataDict[c][v],2))
+        res.append(tmp)
+    return res
+
 
 @app.route('/db/getPerformance',methods=['POST','GET'])
 def get_portfolio_performance():
     data = request.json
     pName = data['portfolio_name']
+    if 'benchmarks' in data:
+        bList = data['benchmarks']
+    else:
+        bList = []
     startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
-    portValue = get_portfolio(conStr, pName, startDate, endDate)
-    perform = performance.PerformanceBase(portValue,0).performance()
-    return Response(json.dumps(perform,default=str),mimetype='application/json')
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    dataDict = {}
+    portValue = get_portfolio(conStr, pName, startDate, endDate,False)
+    portValueList = np.array([portValue[i]['portfolio_value'] + portValue[i]['holding'] for i in portValue])
+    perform = performance.PerformanceBase(portValueList,0).performance()
+    dataDict['Base'] = perform
+    for i in bList:
+        dbc = StockConnector(i,stockConStr)
+        df = dbc.get_data(data['startDate'],data['endDate'])
+        benchPerform = performance.PerformanceBase(df.Close.values,0).performance()
+        dataDict[i] = benchPerform
+    res = performance_to_detail_rows(dataDict)
+    print(res)
+    return Response(json.dumps(res,default=str),mimetype='application/json')
 
 
 def run():

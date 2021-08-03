@@ -20,80 +20,7 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
 import getOverlappingDaysInIntervals from "date-fns/esm/fp/getOverlappingDaysInIntervals/index.js";
 
-
 let margin = 50;
-const columns = [
-  {
-    field: "metric",
-    headerName: "Metrics",
-    width: 150,
-    editable: true,
-  },
-  {
-    field: "base",
-    headerName: "Base",
-    width: 300,
-    editable: true,
-  },
-  {
-    field: "benchmark",
-    headerName: "Benchmark",
-    type: "date",
-    width: 150,
-    editable: true,
-  },
-];
-
-const rows = [
-  {
-    id: 1,
-    metric: "Period Return",
-    base: "11",
-    benchmark: "12",
-  },
-  {
-    id: 2,
-    metric: "Period Return (%)",
-    base: "0.2",
-    benchmark: "1",
-  },
-  {
-    id: 3,
-    metric: "Max Drawdown",
-    base: "10",
-    benchmark: "12",
-  },
-  {
-    id: 4,
-    metric: "Period Voltility (std.)",
-    base: "0.2",
-    benchmark: "1.2",
-  },
-  {
-    id: 5,
-    metric: "Sharpe Ratio",
-    base: "0.25",
-    benchmark: "1.1",
-  },
-  {
-    id: 6,
-    metric: "Sortino Ratio",
-    base: "2.2",
-    benchmark: "1.3",
-  },
-  {
-    id: 7,
-    metric: "Number Transaction",
-    base: "2",
-    benchmark: "13",
-  },
-  {
-    id: 8,
-    metric: "Transaction Fee",
-    base: "0",
-    benchmark: "0",
-  },
-];
 
 class Portfolio_Detail_Page extends React.Component {
   constructor(props) {
@@ -103,9 +30,23 @@ class Portfolio_Detail_Page extends React.Component {
       endDate: new Date("2021-07-31"),
       benchmarkList: [],
       strategyName: props.match.params.name,
-      rows: [],
+      performanceRow: [],
+      performanceColumn: [
+        {
+          field: "metric",
+          headerName: "Metrics",
+          width: 150,
+          editable: true,
+        },
+        {
+          field: "Base",
+          headerName: "Base",
+          width: 300,
+          editable: true,
+        },
+      ],
       lineChartData: [],
-      barChartData:[],
+      barChartData: [],
       dataCategory: [],
     };
     this.create_table = this.create_table.bind(this);
@@ -115,6 +56,7 @@ class Portfolio_Detail_Page extends React.Component {
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
+    this.updatePortflioData = this.updatePortflioData.bind(this);
     this.fetch_portfolioData = this.fetch_portfolioData.bind(this);
     this.OnClick_deleteSelectedBenchmark =
       this.OnClick_deleteSelectedBenchmark.bind(this);
@@ -132,21 +74,28 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ endDate: date });
   }
 
+  async fetch_performanceData(queryInfo) {
+    const data = await fetch("http://localhost:5000/db/getPerformance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(queryInfo),
+    }).then((d) => d.json());
+    this.setState({ performanceRow: data });
+
+    return data;
+  }
+
   componentDidMount() {
-    let queryInfo = {
-      startDate: this.state.startDate.toISOString().split(["T"])[0],
-      endDate: this.state.endDate.toISOString().split(["T"])[0],
-      portfolio_name: this.state.strategyName,
-      padding:true,
-    };
-    let pData = this.fetch_portfolioData(queryInfo);
+    this.updatePortflioData(this.state.benchmarkList);
   }
 
   componentDidUpdate() {
     console.log(`component did update ${this.state.benchmarkList}`);
   }
 
-  async fetch_portfolioData(queryInfo,withoutUpdate=false) {
+  async fetch_portfolioData(queryInfo, withoutUpdate = false) {
     const data = await fetch("http://localhost:5000/db/getPortfolioStockData", {
       method: "POST",
       headers: {
@@ -154,124 +103,10 @@ class Portfolio_Detail_Page extends React.Component {
       },
       body: JSON.stringify(queryInfo),
     }).then((d) => d.json());
-
-
-
     this.updateStateLineChart(data);
     this.updateBarChart(data);
-    this.updateStateDataCategory([{'ticker':'portfolio_value'}]);
-    return data
-  }
-
-  updateStateLineChart(devData){
-    let orgData = this.state.lineChartData;
-    orgData.map((d)=>{
-      if (devData[d['Date']] !== undefined){
-        devData[d['Date']]['portfolio_value'] = d['portfolio_value']
-      }
-    })
-    let lineChartData = orgData;
-    if(Object.keys(devData).length >0){
-      lineChartData = Object.keys(devData).map((d) => {
-        let tmp = {};
-        tmp["Date"] = d;
-        Object.keys(devData[d]).map((k) => {
-          tmp[k] = devData[d][k];
-        });
-        return tmp;
-      });
-    }
-    else{
-      lineChartData = lineChartData.map((d)=>{
-        return {'Date':d['Date'],'portfolio_value':d['portfolio_value']}
-      })
-    }
-    lineChartData = lineChartData.sort((first,sec)=> {
-      if (first['Date'] > sec['Date']){
-        return 1
-      }
-      else{
-        return -1
-      }
-    });
-    this.setState({ lineChartData: lineChartData });
-  }
-
-  updateBarChart(devData){
-
-    let devDatacp = {...devData}
-    let orderedDate = Object.keys(devData).sort((a,b)=> {if (a > b) {return 1} else {return -1}})
-    orderedDate.map((d,index)=>{
-      if (index==0){ return undefined;}
-      let tmp = {}
-      Object.keys(devDatacp[d]).map((j)=>{
-        tmp[j]= devDatacp[d][j] - devDatacp[orderedDate[index-1]][j]
-      })
-      devData[d] = tmp
-    })
-    console.log(devData)
-    let orgData = this.state.barChartData;
-    orgData.map((d)=>{
-      if (devData[d['Date']] !== undefined){
-        devData[d['Date']]['portfolio_value'] = d['portfolio_value']
-      }
-    })
-    let barChartData = orgData;
-    if(Object.keys(devData).length >0){
-      barChartData = Object.keys(devData).map((d) => {
-        let tmp = {};
-        tmp["Date"] = d;
-        Object.keys(devData[d]).map((k) => {
-          tmp[k] = devData[d][k];
-        });
-        return tmp;
-      });
-    }
-    else{
-      barChartData = barChartData.map((d)=>{
-        return {'Date':d['Date'],'portfolio_value':d['portfolio_value']}
-      })
-    }
-    barChartData = barChartData.sort((first,sec)=> {
-      if (first['Date'] > sec['Date']){
-        return 1
-      }
-      else{
-        return -1
-      }
-    });
-    console.log(barChartData)
-    this.setState({ barChartData: barChartData });
-  }
-
-
-  updateStateDataCategory(data){
-    let uniqueCate = [...new Set(data.map((item) => item.ticker))];
-    let orgDataCate = this.state.dataCategory.map((d)=>{
-      return d['name']
-    });
-    let dataCategory = uniqueCate.map((d) => {
-    if(!orgDataCate.includes(d)){
-        return {
-          time: "Date",
-          name: d,
-          color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-          dot: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-        };
-      }
-    });
-    let orgDataCategory = this.state.dataCategory;
-    dataCategory.map((d)=>{
-      if(d !== undefined){
-        orgDataCategory.push(d)
-      }
-    })
-    for (var i = 0; i < orgDataCategory.length;i++){
-      if( (!uniqueCate.includes(orgDataCategory[i]['name'])) &&( orgDataCategory[i]['name'] !='portfolio_value')){
-        orgDataCategory.splice(i,1)
-      }
-    }
-    this.setState({ dataCategory: orgDataCategory });
+    this.updateStateDataCategory([{ ticker: "portfolio_value" }]);
+    return data;
   }
 
   async fetch_stockData(queryInfo) {
@@ -287,6 +122,144 @@ class Portfolio_Detail_Page extends React.Component {
     this.updateStateLineChart(devData);
     this.updateBarChart(devData);
     this.updateStateDataCategory(data);
+    this.updatePortflioData(queryInfo.ticker);
+  }
+
+  updatePortflioData(benchmarkList) {
+    let queryInfo = {
+      startDate: this.state.startDate.toISOString().split(["T"])[0],
+      endDate: this.state.endDate.toISOString().split(["T"])[0],
+      portfolio_name: this.state.strategyName,
+      padding: true,
+      benchmarks: benchmarkList,
+    };
+    let pData = this.fetch_portfolioData(queryInfo);
+    let peroformance_data = this.fetch_performanceData(queryInfo);
+    let columnInfo = [...this.state.performanceColumn];
+    benchmarkList.map((d) => {
+      let tmp = {
+        width: 150,
+        editable: true,
+      };
+      tmp["field"] = d;
+      tmp["headerName"] = d;
+      columnInfo.push(tmp);
+    });
+    this.setState({ performanceColumn: columnInfo });
+  }
+
+  updateStateLineChart(devData) {
+    let orgData = this.state.lineChartData;
+    orgData.map((d) => {
+      if (devData[d["Date"]] !== undefined) {
+        devData[d["Date"]]["portfolio_value"] = d["portfolio_value"];
+      }
+    });
+    let lineChartData = orgData;
+    if (Object.keys(devData).length > 0) {
+      lineChartData = Object.keys(devData).map((d) => {
+        let tmp = {};
+        tmp["Date"] = d;
+        Object.keys(devData[d]).map((k) => {
+          tmp[k] = devData[d][k];
+        });
+        return tmp;
+      });
+    } else {
+      lineChartData = lineChartData.map((d) => {
+        return { Date: d["Date"], portfolio_value: d["portfolio_value"] };
+      });
+    }
+    lineChartData = lineChartData.sort((first, sec) => {
+      if (first["Date"] > sec["Date"]) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+    this.setState({ lineChartData: lineChartData });
+  }
+
+  updateBarChart(devData) {
+    let devDatacp = { ...devData };
+    let orderedDate = Object.keys(devData).sort((a, b) => {
+      if (a > b) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+    orderedDate.map((d, index) => {
+      if (index == 0) {
+        return undefined;
+      }
+      let tmp = {};
+      Object.keys(devDatacp[d]).map((j) => {
+        tmp[j] = devDatacp[d][j] - devDatacp[orderedDate[index - 1]][j];
+      });
+      devData[d] = tmp;
+    });
+    let orgData = this.state.barChartData;
+    orgData.map((d) => {
+      if (devData[d["Date"]] !== undefined) {
+        devData[d["Date"]]["portfolio_value"] = d["portfolio_value"];
+      }
+    });
+    let barChartData = orgData;
+    if (Object.keys(devData).length > 0) {
+      barChartData = Object.keys(devData).map((d) => {
+        let tmp = {};
+        tmp["Date"] = d;
+        Object.keys(devData[d]).map((k) => {
+          tmp[k] = devData[d][k];
+        });
+        return tmp;
+      });
+    } else {
+      barChartData = barChartData.map((d) => {
+        return { Date: d["Date"], portfolio_value: d["portfolio_value"] };
+      });
+    }
+    barChartData = barChartData.sort((first, sec) => {
+      if (first["Date"] > sec["Date"]) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+    this.setState({ barChartData: barChartData });
+  }
+
+  updateStateDataCategory(data) {
+    let uniqueCate = [...new Set(data.map((item) => item.ticker))];
+    let orgDataCate = this.state.dataCategory.map((d) => {
+      return d["name"];
+    });
+    let dataCategory = uniqueCate.map((d) => {
+      if (!orgDataCate.includes(d)) {
+        return {
+          time: "Date",
+          name: d,
+          color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+          dot: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+        };
+      }
+    });
+    let orgDataCategory = this.state.dataCategory;
+    dataCategory.map((d) => {
+      if (d !== undefined) {
+        orgDataCategory.push(d);
+      }
+    });
+    for (var i = 0; i < orgDataCategory.length; i++) {
+      if (
+        !uniqueCate.includes(orgDataCategory[i]["name"]) &&
+        orgDataCategory[i]["name"] != "portfolio_value"
+      ) {
+        orgDataCategory.splice(i, 1);
+      }
+    }
+    this.setState({ dataCategory: orgDataCategory });
   }
 
   stock_data_to_date_dict(data) {
@@ -310,7 +283,6 @@ class Portfolio_Detail_Page extends React.Component {
         benchmarkList: benchmark,
       });
       e.target.value = "";
-      console.log("year", this.state.startDate);
       let queryInfo = {
         ticker: benchmark,
         startDate: this.state.startDate.toISOString().split("T")[0],
@@ -472,14 +444,22 @@ class Portfolio_Detail_Page extends React.Component {
                   </div>
                 </AccordionSummary>
                 <AccordionDetails>
-                  {this.create_table(rows, columns)}
+                  {this.create_table(
+                    this.state.performanceRow,
+                    this.state.performanceColumn
+                  )}
                 </AccordionDetails>
               </Accordion>
             </Box>
           </Grid>
           <Grid item sm={3}></Grid>
           <Grid item sm={6} alignContent="center">
-            <Box m={0}>{this.create_table(rows, columns)}</Box>
+            <Box m={0}>
+              {this.create_table(
+                this.state.performanceRow,
+                this.state.performanceColumn
+              )}
+            </Box>
           </Grid>
         </Grid>
         <Grid item sm={3}></Grid>
