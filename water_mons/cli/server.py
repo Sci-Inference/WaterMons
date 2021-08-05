@@ -183,6 +183,36 @@ def get_portfolio_performance():
     print(res)
     return Response(json.dumps(res,default=str),mimetype='application/json')
 
+@app.route('/db/getPerformanceLineChart',methods=['POST','GET'])
+def get_peroformance_line_chart():
+    data = request.json
+    pName = data['portfolio_name']
+    if 'benchmarks' in data:
+        bList = data['benchmarks']
+    else:
+        bList = []
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    
+    
+@app.route('/db/getPerformanceBarChart',methods=['GET','POST'])
+def get_performance_bar_chart():
+    data = request.json
+    pName = data['portfolio_name']
+    if 'benchmarks' in data:
+        bList = data['benchmarks']
+    else:
+        bList = []
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+
+
+
+
 
 def run():
     app.run(use_reloader=True, port=5000, threaded=True)

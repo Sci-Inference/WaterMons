@@ -120,7 +120,6 @@ function NumberFormatCustom(props) {
         if(alertMsg != null){
           alert(alertMsg);
         }
-        console.log(stockInfo);
         await fetch("http://localhost:5000/db/createPortfolioStocks", {
           method: "POST",
           headers: {

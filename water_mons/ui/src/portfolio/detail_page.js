@@ -18,7 +18,6 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
-import getOverlappingDaysInIntervals from "date-fns/esm/fp/getOverlappingDaysInIntervals/index.js";
 
 let margin = 50;
 
@@ -74,6 +73,14 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ endDate: date });
   }
 
+  componentDidMount() {
+    this.updatePortflioData(this.state.benchmarkList);
+  }
+
+  componentDidUpdate() {
+    console.log(`component did update ${this.state.benchmarkList}`);
+  }
+
   async fetch_performanceData(queryInfo) {
     const data = await fetch("http://localhost:5000/db/getPerformance", {
       method: "POST",
@@ -83,16 +90,7 @@ class Portfolio_Detail_Page extends React.Component {
       body: JSON.stringify(queryInfo),
     }).then((d) => d.json());
     this.setState({ performanceRow: data });
-
     return data;
-  }
-
-  componentDidMount() {
-    this.updatePortflioData(this.state.benchmarkList);
-  }
-
-  componentDidUpdate() {
-    console.log(`component did update ${this.state.benchmarkList}`);
   }
 
   async fetch_portfolioData(queryInfo, withoutUpdate = false) {
@@ -106,7 +104,6 @@ class Portfolio_Detail_Page extends React.Component {
     this.updateStateLineChart(data);
     this.updateBarChart(data);
     this.updateStateDataCategory([{ ticker: "portfolio_value" }]);
-    return data;
   }
 
   async fetch_stockData(queryInfo) {
@@ -133,9 +130,10 @@ class Portfolio_Detail_Page extends React.Component {
       padding: true,
       benchmarks: benchmarkList,
     };
-    let pData = this.fetch_portfolioData(queryInfo);
-    let peroformance_data = this.fetch_performanceData(queryInfo);
+    this.fetch_portfolioData(queryInfo);
+    this.fetch_performanceData(queryInfo);
     let columnInfo = [...this.state.performanceColumn];
+    let existList = this.state.performanceColumn.map((d)=>{return d.headerName})
     benchmarkList.map((d) => {
       let tmp = {
         width: 150,
@@ -143,7 +141,7 @@ class Portfolio_Detail_Page extends React.Component {
       };
       tmp["field"] = d;
       tmp["headerName"] = d;
-      columnInfo.push(tmp);
+      if (!existList.includes(d)) columnInfo.push(tmp);
     });
     this.setState({ performanceColumn: columnInfo });
   }
