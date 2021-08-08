@@ -30,33 +30,17 @@ class Portfolio_Detail_Page extends React.Component {
       benchmarkList: [],
       strategyName: props.match.params.name,
       performanceRow: [],
-      performanceColumn: [
-        {
-          field: "metric",
-          headerName: "Metrics",
-          width: 150,
-          editable: true,
-        },
-        {
-          field: "Base",
-          headerName: "Base",
-          width: 300,
-          editable: true,
-        },
-      ],
+      performanceColumn: [],
       lineChartData: [],
       barChartData: [],
       dataCategory: [],
     };
     this.create_table = this.create_table.bind(this);
-    this.fetch_stockData = this.fetch_stockData.bind(this);
     this.handleCompareField = this.handleCompareField.bind(this);
     this.handleendDateChange = this.handleendDateChange.bind(this);
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
-    this.updatePortflioData = this.updatePortflioData.bind(this);
-    this.fetch_portfolioData = this.fetch_portfolioData.bind(this);
     this.OnClick_deleteSelectedBenchmark =
       this.OnClick_deleteSelectedBenchmark.bind(this);
   }
@@ -73,160 +57,15 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ endDate: date });
   }
 
-  componentDidMount() {
-    this.updatePortflioData(this.state.benchmarkList);
+  async componentDidMount() {
+    console.log('mounted')
+    this.updateAllState([])
   }
 
   componentDidUpdate() {
     console.log(`component did update ${this.state.benchmarkList}`);
   }
 
-  async fetch_performanceData(queryInfo) {
-    const data = await fetch("http://localhost:5000/db/getPerformance", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(queryInfo),
-    }).then((d) => d.json());
-    this.setState({ performanceRow: data });
-    return data;
-  }
-
-  async fetch_portfolioData(queryInfo, withoutUpdate = false) {
-    const data = await fetch("http://localhost:5000/db/getPortfolioStockData", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(queryInfo),
-    }).then((d) => d.json());
-    this.updateStateLineChart(data);
-    this.updateBarChart(data);
-    this.updateStateDataCategory([{ ticker: "portfolio_value" }]);
-  }
-
-  async fetch_stockData(queryInfo) {
-    const data = await fetch("http://localhost:5000/db/getStockData", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(queryInfo),
-    }).then((d) => d.json());
-
-    let devData = this.stock_data_to_date_dict(data);
-    this.updateStateLineChart(devData);
-    this.updateBarChart(devData);
-    this.updateStateDataCategory(data);
-    this.updatePortflioData(queryInfo.ticker);
-  }
-
-  updatePortflioData(benchmarkList) {
-    let queryInfo = {
-      startDate: this.state.startDate.toISOString().split(["T"])[0],
-      endDate: this.state.endDate.toISOString().split(["T"])[0],
-      portfolio_name: this.state.strategyName,
-      padding: true,
-      benchmarks: benchmarkList,
-    };
-    this.fetch_portfolioData(queryInfo);
-    this.fetch_performanceData(queryInfo);
-    let columnInfo = [...this.state.performanceColumn];
-    let existList = this.state.performanceColumn.map((d)=>{return d.headerName})
-    benchmarkList.map((d) => {
-      let tmp = {
-        width: 150,
-        editable: true,
-      };
-      tmp["field"] = d;
-      tmp["headerName"] = d;
-      if (!existList.includes(d)) columnInfo.push(tmp);
-    });
-    this.setState({ performanceColumn: columnInfo });
-  }
-
-  updateStateLineChart(devData) {
-    let orgData = this.state.lineChartData;
-    orgData.map((d) => {
-      if (devData[d["Date"]] !== undefined) {
-        devData[d["Date"]]["portfolio_value"] = d["portfolio_value"];
-      }
-    });
-    let lineChartData = orgData;
-    if (Object.keys(devData).length > 0) {
-      lineChartData = Object.keys(devData).map((d) => {
-        let tmp = {};
-        tmp["Date"] = d;
-        Object.keys(devData[d]).map((k) => {
-          tmp[k] = devData[d][k];
-        });
-        return tmp;
-      });
-    } else {
-      lineChartData = lineChartData.map((d) => {
-        return { Date: d["Date"], portfolio_value: d["portfolio_value"] };
-      });
-    }
-    lineChartData = lineChartData.sort((first, sec) => {
-      if (first["Date"] > sec["Date"]) {
-        return 1;
-      } else {
-        return -1;
-      }
-    });
-    this.setState({ lineChartData: lineChartData });
-  }
-
-  updateBarChart(devData) {
-    let devDatacp = { ...devData };
-    let orderedDate = Object.keys(devData).sort((a, b) => {
-      if (a > b) {
-        return 1;
-      } else {
-        return -1;
-      }
-    });
-    orderedDate.map((d, index) => {
-      if (index == 0) {
-        return undefined;
-      }
-      let tmp = {};
-      Object.keys(devDatacp[d]).map((j) => {
-        tmp[j] = devDatacp[d][j] - devDatacp[orderedDate[index - 1]][j];
-      });
-      devData[d] = tmp;
-    });
-    let orgData = this.state.barChartData;
-    orgData.map((d) => {
-      if (devData[d["Date"]] !== undefined) {
-        devData[d["Date"]]["portfolio_value"] = d["portfolio_value"];
-      }
-    });
-    let barChartData = orgData;
-    if (Object.keys(devData).length > 0) {
-      barChartData = Object.keys(devData).map((d) => {
-        let tmp = {};
-        tmp["Date"] = d;
-        Object.keys(devData[d]).map((k) => {
-          tmp[k] = devData[d][k];
-        });
-        return tmp;
-      });
-    } else {
-      barChartData = barChartData.map((d) => {
-        return { Date: d["Date"], portfolio_value: d["portfolio_value"] };
-      });
-    }
-    barChartData = barChartData.sort((first, sec) => {
-      if (first["Date"] > sec["Date"]) {
-        return 1;
-      } else {
-        return -1;
-      }
-    });
-    this.setState({ barChartData: barChartData });
-  }
 
   updateStateDataCategory(data) {
     let uniqueCate = [...new Set(data.map((item) => item.ticker))];
@@ -260,6 +99,100 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ dataCategory: orgDataCategory });
   }
 
+  async updateLineChart(benchmarkList){
+    let queryInfo = {
+      startDate: this.state.startDate.toISOString().split(["T"])[0],
+      endDate: this.state.endDate.toISOString().split(["T"])[0],
+      portfolio_name: this.state.strategyName,
+      padding: true,
+      benchmarks: benchmarkList,
+    };
+
+    const data = await fetch("http://localhost:5000/db/getPerformanceLineChart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(queryInfo),
+    }).then((d) => d.json());
+    this.setState({'lineChartData':data})
+  }
+
+
+  async updateBarChart(benchmarkList){
+    let queryInfo = {
+      startDate: this.state.startDate.toISOString().split(["T"])[0],
+      endDate: this.state.endDate.toISOString().split(["T"])[0],
+      portfolio_name: this.state.strategyName,
+      padding: true,
+      benchmarks: benchmarkList,
+    };
+
+    const data = await fetch("http://localhost:5000/db/getPerformanceBarChart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(queryInfo),
+    }).then((d) => d.json());
+    this.setState({'barChartData':data})
+  }
+
+  async updatePortfolioPerformance(benchmarkList){
+    let performanceColumn= [
+      {
+        field: "metric",
+        headerName: "Metrics",
+        width: 150,
+        editable: true,
+      },
+      {
+        field: "Base",
+        headerName: "Base",
+        width: 300,
+        editable: true,
+      },
+    ]
+
+    benchmarkList.map((d)=>{
+      performanceColumn.push({
+        field: d,
+        headerName: d,
+        width: 300,
+        editable: true,
+      })
+    })
+
+    let queryInfo = {
+      startDate: this.state.startDate.toISOString().split(["T"])[0],
+      endDate: this.state.endDate.toISOString().split(["T"])[0],
+      portfolio_name: this.state.strategyName,
+      padding: true,
+      benchmarks: benchmarkList,
+    };
+
+    const data = await fetch("http://localhost:5000/db/getPerformance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(queryInfo),
+    }).then((d) => d.json());
+    this.setState({'performanceRow':data})
+    this.setState({'performanceColumn':performanceColumn})
+  }
+  
+  updateAllState(benchmarkList){
+    let cateList = [{ ticker: "Base" }]
+    benchmarkList.map((d)=>{
+      cateList.push({ticker:d})
+    })
+    this.updateStateDataCategory(cateList)
+    this.updateLineChart(benchmarkList)
+    this.updateBarChart(benchmarkList)
+    this.updatePortfolioPerformance(benchmarkList)
+  }
+
   stock_data_to_date_dict(data) {
     let devData = {};
     data.map((d) => {
@@ -281,12 +214,7 @@ class Portfolio_Detail_Page extends React.Component {
         benchmarkList: benchmark,
       });
       e.target.value = "";
-      let queryInfo = {
-        ticker: benchmark,
-        startDate: this.state.startDate.toISOString().split("T")[0],
-        endDate: this.state.endDate.toISOString().split("T")[0],
-      };
-      this.fetch_stockData(queryInfo);
+      this.updateAllState(benchmark);
     }
   }
 
@@ -298,12 +226,7 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({
       benchmarkList: benchmark,
     });
-    let queryInfo = {
-      ticker: benchmark,
-      startDate: this.state.startDate.toISOString().split("T")[0],
-      endDate: this.state.endDate.toISOString().split("T")[0],
-    };
-    this.fetch_stockData(queryInfo);
+    this.updateAllState(benchmark);
   }
 
   createSelectedBenchmark() {

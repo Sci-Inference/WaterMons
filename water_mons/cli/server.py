@@ -1,4 +1,5 @@
 import os
+from sqlalchemy.sql.operators import is_ordering_modifier
 import yaml
 import json
 import numpy as np
@@ -114,7 +115,6 @@ def get_portfolio(conStr, pName, startDate, endDate,padding):
     conStr = read_config()['data_connection']['STOCK_CONNECTION']
     p = portfolio.Portfolio(conStr=conStr)
     for i in db_data:
-        print(i['createdDate'].strftime('%Y-%m-%d'))
         p.append_ticker(
             ticker = i['ticker'],
             createDate=i['createdDate'].strftime('%Y-%m-%d'),
@@ -195,6 +195,21 @@ def get_peroformance_line_chart():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    pValue = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate,padding=True)
+    df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
+    df['Close'] = df['portfolio_value'] + df['holding']
+    df = df[['index','Close']]
+    df['ticker'] = 'Base'
+    df.columns = ['Date','Close','ticker']
+    for ix,v in enumerate(bList):
+        tmp = StockConnector(v,stockConStr).get_data(startDate=data['startDate'],endDate=data['endDate'])[['Date','ticker','Close']]
+        tmp['Date'] = tmp['Date'].dt.strftime('%Y-%m-%d')
+        if v == 0:
+            df = tmp
+            continue
+        df = df.append(tmp,ignore_index=True)
+    res = pd.DataFrame(df.pivot('Date','ticker','Close').to_records()).dropna().to_dict('records')
+    return Response(json.dumps(res,default=str),mimetype='application/json')
     
     
 @app.route('/db/getPerformanceBarChart',methods=['GET','POST'])
@@ -209,7 +224,24 @@ def get_performance_bar_chart():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
-
+    pValue = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate,padding=True)
+    df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
+    df['Close'] = df['portfolio_value'] + df['holding']
+    df = df[['index','Close']]
+    df['ticker'] = 'Base'
+    df.columns = ['Date','Close','ticker']
+    for ix,v in enumerate(bList):
+        tmp = StockConnector(v,stockConStr).get_data(startDate=data['startDate'],endDate=data['endDate'])[['Date','ticker','Close']]
+        tmp['Date'] = tmp['Date'].dt.strftime('%Y-%m-%d')
+        if v == 0:
+            df = tmp
+            continue
+        df = df.append(tmp,ignore_index=True)
+    res = pd.DataFrame(df.pivot('Date','ticker','Close').to_records()).dropna()
+    tmp = res.sort_values('Date')[filter(lambda x: x!='Date',res.columns)].apply(lambda x: x - x.shift(1),axis =0)
+    tmp['Date'] = res['Date']
+    res = tmp.dropna().to_dict('records')
+    return Response(json.dumps(res,default=str),mimetype='application/json')
 
 
 
