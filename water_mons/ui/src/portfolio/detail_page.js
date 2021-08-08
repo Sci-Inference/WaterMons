@@ -34,6 +34,21 @@ class Portfolio_Detail_Page extends React.Component {
       lineChartData: [],
       barChartData: [],
       dataCategory: [],
+      portfolioCompCol: [
+        {
+          field: "ticker",
+          headerName: "Ticker",
+          width: 150,
+          editable: true,
+        },
+        {
+          field: "holdingNumber",
+          headerName: "Holding Number",
+          width: 300,
+          editable: true,
+        },
+      ],
+      portfolioCompoRow:[],
       portfolioCompoDate: new Date("2021-07-01"),
     };
     this.create_table = this.create_table.bind(this);
@@ -43,6 +58,7 @@ class Portfolio_Detail_Page extends React.Component {
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
+    this.updatePortfolioComposition = this.updatePortfolioComposition.bind(this);
     this.OnClick_deleteSelectedBenchmark =
       this.OnClick_deleteSelectedBenchmark.bind(this);
   }
@@ -224,8 +240,31 @@ class Portfolio_Detail_Page extends React.Component {
     }
   }
 
+
+  async updatePortfolioComposition(selectedDate){
+    let queryInfo = {
+      selectedDate:selectedDate.toISOString().split(["T"])[0],
+      portfolio_name: this.state.strategyName,
+    };
+
+    let data = await fetch(
+      "http://localhost:5000/db/getPortfolioComposition",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(queryInfo),
+      }
+    ).then((d) => d.json());
+    this.setState({ portfolioCompoRow: data });
+  };
+
+
+
   handlePortfolioCompoDate(e) {
     this.setState({ portfolioCompoDate: e });
+    this.updatePortfolioComposition(e)
   }
 
   OnClick_deleteSelectedBenchmark(e) {
@@ -394,8 +433,8 @@ class Portfolio_Detail_Page extends React.Component {
                   </MuiPickersUtilsProvider>
 
                   {this.create_table(
-                    this.state.performanceRow,
-                    this.state.performanceColumn
+                    this.state.portfolioCompoRow,
+                    this.state.portfolioCompCol
                   )}
                 </AccordionDetails>
               </Accordion>
