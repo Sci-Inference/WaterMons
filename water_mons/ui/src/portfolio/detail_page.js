@@ -34,8 +34,10 @@ class Portfolio_Detail_Page extends React.Component {
       lineChartData: [],
       barChartData: [],
       dataCategory: [],
+      portfolioCompoDate: new Date("2021-07-01"),
     };
     this.create_table = this.create_table.bind(this);
+    this.handlePortfolioCompoDate = this.handlePortfolioCompoDate.bind(this);
     this.handleCompareField = this.handleCompareField.bind(this);
     this.handleendDateChange = this.handleendDateChange.bind(this);
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
@@ -58,14 +60,13 @@ class Portfolio_Detail_Page extends React.Component {
   }
 
   async componentDidMount() {
-    console.log('mounted')
-    this.updateAllState([])
+    console.log("mounted");
+    this.updateAllState([]);
   }
 
   componentDidUpdate() {
     console.log(`component did update ${this.state.benchmarkList}`);
   }
-
 
   updateStateDataCategory(data) {
     let uniqueCate = [...new Set(data.map((item) => item.ticker))];
@@ -99,7 +100,7 @@ class Portfolio_Detail_Page extends React.Component {
     this.setState({ dataCategory: orgDataCategory });
   }
 
-  async updateLineChart(benchmarkList){
+  async updateLineChart(benchmarkList) {
     let queryInfo = {
       startDate: this.state.startDate.toISOString().split(["T"])[0],
       endDate: this.state.endDate.toISOString().split(["T"])[0],
@@ -108,18 +109,20 @@ class Portfolio_Detail_Page extends React.Component {
       benchmarks: benchmarkList,
     };
 
-    const data = await fetch("http://localhost:5000/db/getPerformanceLineChart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(queryInfo),
-    }).then((d) => d.json());
-    this.setState({'lineChartData':data})
+    const data = await fetch(
+      "http://localhost:5000/db/getPerformanceLineChart",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(queryInfo),
+      }
+    ).then((d) => d.json());
+    this.setState({ lineChartData: data });
   }
 
-
-  async updateBarChart(benchmarkList){
+  async updateBarChart(benchmarkList) {
     let queryInfo = {
       startDate: this.state.startDate.toISOString().split(["T"])[0],
       endDate: this.state.endDate.toISOString().split(["T"])[0],
@@ -128,18 +131,21 @@ class Portfolio_Detail_Page extends React.Component {
       benchmarks: benchmarkList,
     };
 
-    const data = await fetch("http://localhost:5000/db/getPerformanceBarChart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(queryInfo),
-    }).then((d) => d.json());
-    this.setState({'barChartData':data})
+    const data = await fetch(
+      "http://localhost:5000/db/getPerformanceBarChart",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(queryInfo),
+      }
+    ).then((d) => d.json());
+    this.setState({ barChartData: data });
   }
 
-  async updatePortfolioPerformance(benchmarkList){
-    let performanceColumn= [
+  async updatePortfolioPerformance(benchmarkList) {
+    let performanceColumn = [
       {
         field: "metric",
         headerName: "Metrics",
@@ -152,16 +158,16 @@ class Portfolio_Detail_Page extends React.Component {
         width: 300,
         editable: true,
       },
-    ]
+    ];
 
-    benchmarkList.map((d)=>{
+    benchmarkList.map((d) => {
       performanceColumn.push({
         field: d,
         headerName: d,
         width: 300,
         editable: true,
-      })
-    })
+      });
+    });
 
     let queryInfo = {
       startDate: this.state.startDate.toISOString().split(["T"])[0],
@@ -178,19 +184,19 @@ class Portfolio_Detail_Page extends React.Component {
       },
       body: JSON.stringify(queryInfo),
     }).then((d) => d.json());
-    this.setState({'performanceRow':data})
-    this.setState({'performanceColumn':performanceColumn})
+    this.setState({ performanceRow: data });
+    this.setState({ performanceColumn: performanceColumn });
   }
-  
-  updateAllState(benchmarkList){
-    let cateList = [{ ticker: "Base" }]
-    benchmarkList.map((d)=>{
-      cateList.push({ticker:d})
-    })
-    this.updateStateDataCategory(cateList)
-    this.updateLineChart(benchmarkList)
-    this.updateBarChart(benchmarkList)
-    this.updatePortfolioPerformance(benchmarkList)
+
+  updateAllState(benchmarkList) {
+    let cateList = [{ ticker: "Base" }];
+    benchmarkList.map((d) => {
+      cateList.push({ ticker: d });
+    });
+    this.updateStateDataCategory(cateList);
+    this.updateLineChart(benchmarkList);
+    this.updateBarChart(benchmarkList);
+    this.updatePortfolioPerformance(benchmarkList);
   }
 
   stock_data_to_date_dict(data) {
@@ -216,6 +222,10 @@ class Portfolio_Detail_Page extends React.Component {
       e.target.value = "";
       this.updateAllState(benchmark);
     }
+  }
+
+  handlePortfolioCompoDate(e) {
+    this.setState({ portfolioCompoDate: e });
   }
 
   OnClick_deleteSelectedBenchmark(e) {
@@ -365,6 +375,24 @@ class Portfolio_Detail_Page extends React.Component {
                   </div>
                 </AccordionSummary>
                 <AccordionDetails>
+                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                    <KeyboardDatePicker
+                      disableToolbar
+                      variant="inline"
+                      format="MM/dd/yyyy"
+                      margin="normal"
+                      minDate={this.state.startDate}
+                      maxDate={this.state.endDate}
+                      id="portfolioPicker"
+                      label="Start Date"
+                      value={this.state.portfolioCompoDate}
+                      onChange={this.handlePortfolioCompoDate}
+                      KeyboardButtonProps={{
+                        "aria-label": "change date",
+                      }}
+                    />
+                  </MuiPickersUtilsProvider>
+
                   {this.create_table(
                     this.state.performanceRow,
                     this.state.performanceColumn

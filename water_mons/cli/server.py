@@ -243,9 +243,29 @@ def get_performance_bar_chart():
     res = tmp.dropna().to_dict('records')
     return Response(json.dumps(res,default=str),mimetype='application/json')
 
+@app.route('/db/getPortfolioComposition',methods=['POST','GET'])
+def getPortfolioComposition():
+    data = request.json
+    pName = data['portfolio_name']
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    get_portfolio()
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    dbc = DBConnector(conStr)
+    session = dbc.session()
+    db_data = list(
+        map(
+            lambda x: dbc.sqlalchmey_to_dict(x),session.query(Portfolio_Stock).filter(and_(
+                Portfolio_Stock.portfolio_name == pName,
+                Portfolio_Stock.createdDate.between(startDate,endDate)
+            )).all()
+            )
+        )
+    session.close()
 
 
-
+    
 def run():
     app.run(use_reloader=True, port=5000, threaded=True)
 
