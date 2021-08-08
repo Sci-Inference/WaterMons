@@ -1,4 +1,5 @@
 import os
+from numpy.core import records
 from sqlalchemy.sql.operators import is_ordering_modifier
 import yaml
 import json
@@ -248,23 +249,28 @@ def getPortfolioComposition():
     data = request.json
     pName = data['portfolio_name']
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
-    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
-    get_portfolio()
-    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
-    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    print(data['selectedDate'])
+    selectedDate = datetime.datetime.strptime(data['selectedDate'],'%Y-%m-%d')
     dbc = DBConnector(conStr)
     session = dbc.session()
     db_data = list(
         map(
             lambda x: dbc.sqlalchmey_to_dict(x),session.query(Portfolio_Stock).filter(and_(
                 Portfolio_Stock.portfolio_name == pName,
-                Portfolio_Stock.createdDate.between(startDate,endDate)
+                Portfolio_Stock.createdDate <= selectedDate
             )).all()
             )
         )
     session.close()
-
-
+    df = pd.DataFrame(db_data)
+    df['stock_option'] =  df.stock_option.apply(lambda x: 1 if x=='buy' else -1)
+    df['purchaseNumber'] = df['stock_option'] * df['purchaseNumber']
+    df = df.groupby(['ticker']).agg({'purchaseNumber':'sum'})
+    res = pd.DataFrame(df.to_records())
+    res.columns = ['ticker','holdingNumber']
+    res['id'] = res.index
+    res = res.to_dict("records")
+    return Response(json.dumps(res,default=str),mimetype='application/json')
     
 def run():
     app.run(use_reloader=True, port=5000, threaded=True)
