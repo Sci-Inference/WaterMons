@@ -38,9 +38,35 @@ class Test_DBConnector:
         ]
         dbc.insert_portfolio_stocks(stocks)
 
+    @pytest.mark.order3
+    def test_strategy_table(self,database_setup):
+        dbc = database_setup
+        data = {
+            'name':'s1',
+            'description':'s1 desc',
+            'createdDate':datetime.datetime.strptime('2021-01-01','%Y-%m-%d')
+            }
+        dbc.create_strategy(**data)
+        session = dbc.session()
+        db_data = session.query(Strategy).all()
+        for i in db_data:
+            dbc.sqlalchmey_to_dict(i) == data
+        session.close()
 
-    # def teardown_method(self):
-    #     os.remove('./water-mons.sqllite')
+    @pytest.mark.order4
+    def test_strategy_stocks(self,database_setup):
+        dbc = database_setup
+        createdDate = datetime.datetime.strptime('2021-07-21','%Y-%m-%d')
+        createdDate2 = datetime.datetime.strptime('2021-07-23','%Y-%m-%d')
+        stocks = [
+            {'ticker':'AT.TO','createdDate':createdDate,"stock_signal":'buy','strategy_name':'s1'},
+            {'ticker':'AT.TO','createdDate':createdDate2,"stock_signal":'sell','strategy_name':'s1'},
+        ]
+        dbc.insert_strategy_stocks(stocks)
+
+
+    def teardown_method(self):
+        os.remove('./water-mons.sqllite')
 
 
 class Test_Stock_Connection:

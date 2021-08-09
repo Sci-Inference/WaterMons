@@ -29,7 +29,7 @@ class Portfolio(Base):
 class Strategy(Base):
     __tablename__ = 'strategy'
     name = Column('strategy_name',String,primary_key=True)
-    desc = Column('description',TEXT)
+    description = Column('description',TEXT)
     createdDate = Column('created',DATETIME)
     stock = relationship("Strategy_Stock")
 
