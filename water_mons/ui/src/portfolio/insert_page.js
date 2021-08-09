@@ -45,13 +45,14 @@ function NumberFormatCustom(props) {
       />
     );
   }
+
   
   class Portfolio_Insert_Page extends React.Component {
       constructor(props){
         super(props);
         this.state = {
-          inputs: ['portfolio_name1'],
-          portOption:['portfolio 1','MACD selection','Multi-Selection']
+          inputs: ['portfolio_name0'],
+          portOption:[]
         };
         this.appendInput = this.appendInput.bind(this);
         this.create_stock_list = this.create_stock_list.bind(this);
@@ -119,6 +120,7 @@ function NumberFormatCustom(props) {
         });
         if(alertMsg != null){
           alert(alertMsg);
+          return
         }
         await fetch("http://localhost:5000/db/createPortfolioStocks", {
           method: "POST",
@@ -126,8 +128,10 @@ function NumberFormatCustom(props) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(stockInfo),
-        });
-
+        }).then((e)=>{
+          this.props.history.goBack();
+        })
+      
       }
     
       create_stock_list() {

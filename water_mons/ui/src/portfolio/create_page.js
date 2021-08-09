@@ -137,16 +137,22 @@ class Portfolio_Create_Page extends React.Component {
         body: JSON.stringify(portfolioData),
       }
     );
+    
+    if (stockInfo.length == 0 && createPortRes.status == 200){
+      this.props.history.goBack();
+    }
 
-    // console.log(createPortRes);
     if (stockInfo.length > 0 && createPortRes.status == 200) {
-      await fetch("http://localhost:5000/db/createPortfolioStocks", {
+      let psStatus = await fetch("http://localhost:5000/db/createPortfolioStocks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(stockInfo),
       });
+      if (psStatus.status==200){
+        this.props.history.goBack();
+    }
     }
   }
 
