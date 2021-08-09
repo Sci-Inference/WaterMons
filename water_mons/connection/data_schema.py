@@ -26,3 +26,17 @@ class Portfolio(Base):
     createdDate = Column('created',DATETIME)
     stock = relationship("Portfolio_Stock")
     
+class Strategy(Base):
+    __tablename__ = 'strategy'
+    name = Column('strategy_name',String,primary_key=True)
+    desc = Column('description',TEXT)
+    createdDate = Column('created',DATETIME)
+    stock = relationship("Strategy_Stock")
+
+class Strategy_Stock(Base):
+    __tablename__='strategy_stock'
+    uuidColumn = Column('stock_id',INTEGER,primary_key=True, autoincrement=True)
+    ticker = Column('ticker',String)
+    createdDate = Column('created',DateTime)
+    stock_signal = Column('signal',String)
+    strategy_name = Column(Integer, ForeignKey('strategy.strategy_name'))
