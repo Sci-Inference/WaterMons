@@ -65,7 +65,7 @@ class Strategy_Landing_Page extends React.Component {
   }
 
   async componentDidMount() {
-    let data = await fetch('http://localhost:5000/db/getPortfolio')
+    let data = await fetch('http://localhost:5000/db/getStrategy')
       .then(res => res.json())
     let rows = data.map((element,index)=>{
         element['id'] = index

@@ -270,6 +270,44 @@ def getPortfolioComposition():
     res['id'] = res.index
     res = res.to_dict("records")
     return Response(json.dumps(res,default=str),mimetype='application/json')
+
+
+@app.route('/db/getStrategy')
+def get_strategy():
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    dbc = DBConnector(conStr)
+    session = dbc.session()
+    db_data = list(map(lambda x: dbc.sqlalchmey_to_dict(x),
+    session.query(Strategy).all()))
+    session.close()
+    return Response(json.dumps(db_data,default=str),mimetype='application/json')
+
+
+@app.route('/db/createStrategy',methods=['POST','GET'])
+def create_strategy():
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    dbc = DBConnector(conStr)
+    data = request.json
+    print(data['createdDate'])
+    dbc.create_strategy(
+        name=data['name'],
+        description=data['description'],
+        createdDate=datetime.datetime.strptime(data['createdDate'],'%Y-%m-%d')
+        )
+    return "200"
+
+@app.route('/db/createStrategyStocks',methods=['POST'])
+def create_strategy_stocks():
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    dbc = DBConnector(conStr)
+    data = request.json
+    print(data)
+    for i in data:
+        i['createdDate'] = datetime.datetime.strptime(i['createdDate'],'%Y-%m-%d')
+    dbc.insert_strategy_stocks(data)
+    return "200"
+
+
     
 def run():
     app.run(use_reloader=True, port=5000, threaded=True)

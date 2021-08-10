@@ -70,7 +70,7 @@ class Strategy_Create_Page extends React.Component {
   }
 
   appendInput() {
-    var newInput = `portfolio_name${this.state.inputs.length}`;
+    var newInput = `strategy_name${this.state.inputs.length}`;
     this.setState((prevState) => ({
       inputs: prevState.inputs.concat([newInput]),
     }));
@@ -84,35 +84,34 @@ class Strategy_Create_Page extends React.Component {
 
   async handleSubmit() {
     let alertMsg = null;
-    let portfolioName = document.querySelector("#portfolio_name").value;
+    let strategyName = document.querySelector("#strategy_name").value;
     let desc = document.querySelector("#description").value;
-    if (portfolioName == "" && alertMsg === null) {
-      alertMsg = "portfolio name is requirement";
+    if (strategyName == "" && alertMsg === null) {
+      alertMsg = "strategy name is requirement";
     }
     if (desc == "" && alertMsg === null) {
-      alertMsg = "portfolio description is requirement";
+      alertMsg = "strategy description is requirement";
     }
 
     let stockInfo = this.state.inputs.map((d) => {
+      console.log(d);
       let tmp = {
         ticker: document.querySelector(`#${d}-ticker`).value,
         createdDate: document.querySelector(`#${d}-date`).value,
-        stock_option: document.querySelector(`#${d}-option`).innerText,
-        purchaseNumber: document.querySelector(`#${d}-number`).value,
-        purchasePrice: document.querySelector(`#${d}-price`).value,
+        stock_signal: document.querySelector(`#${d}-signal`).innerText,
       };
       for (const [key, value] of Object.entries(tmp)) {
         if ((value == "" || value === undefined) && alertMsg === null) {
           alertMsg = `${key} is required`;
         }
-        if (key == "stock_option" && alertMsg === null) {
+        if (key == "stock_signal" && alertMsg === null) {
           console.log(value);
           if (value != "buy" && value != "sell") {
             alertMsg = `${key} is required`;
           }
         }
       }
-      tmp["portfolio_name"] = portfolioName;
+      tmp["strategy_name"] = strategyName;
       return tmp;
     });
     if (alertMsg != null) {
@@ -121,20 +120,20 @@ class Strategy_Create_Page extends React.Component {
     }
 
     let today = new Date();
-    let portfolioData = {
-      name: portfolioName,
+    let strategyData = {
+      name: strategyName,
       description: desc,
       createdDate: `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`,
     };
 
     let createPortRes = await fetch(
-      "http://localhost:5000/db/createPortfolio",
+      "http://localhost:5000/db/createStrategy",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(portfolioData),
+        body: JSON.stringify(strategyData),
       }
     );
     
@@ -143,7 +142,7 @@ class Strategy_Create_Page extends React.Component {
     }
 
     if (stockInfo.length > 0 && createPortRes.status == 200) {
-      let psStatus = await fetch("http://localhost:5000/db/createPortfolioStocks", {
+      let psStatus = await fetch("http://localhost:5000/db/createStrategyStocks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -176,8 +175,8 @@ class Strategy_Create_Page extends React.Component {
             </Grid>
             <Grid sm={2}>
               <TextField
-                id={`${d}-option`}
-                label={"Option"}
+                id={`${d}-signal`}
+                label={"Signal"}
                 select
                 InputLabelProps={{ shrink: true }}
               >
@@ -187,20 +186,6 @@ class Strategy_Create_Page extends React.Component {
                   </MenuItem>
                 ))}
               </TextField>
-            </Grid>
-            <Grid sm={2}>
-              <TextField
-                id={`${d}-number`}
-                label={"Number"}
-                InputProps={{ inputComponent: NumberFormatCustom }}
-              />
-            </Grid>
-            <Grid sm={2}>
-              <TextField
-                id={`${d}-price`}
-                label={"Price"}
-                InputProps={{ inputComponent: NumberFormatCustom }}
-              />
             </Grid>
           </Grid>
         </Grid>
@@ -214,18 +199,18 @@ class Strategy_Create_Page extends React.Component {
         <Grid justifyContent="center" alignContent="center" spacing={12}>
           <Grid item contianer sm={2}>
             <Box m={3}>
-              <Typography variant={"h6"}>Create New Portfolio</Typography>
+              <Typography variant={"h6"}>Create New Strategy</Typography>
             </Box>
           </Grid>
           <Grid item container sm={8}>
             <Grid sm={3}>
               <Box m={3}>
-                <Typography>Portfolio Name</Typography>
+                <Typography>Strategy Name</Typography>
               </Box>
             </Grid>
             <Grid sm={6}>
               <Box m={3}>
-                <TextField id="portfolio_name" />
+                <TextField id="strategy_name" />
               </Box>
             </Grid>
           </Grid>
