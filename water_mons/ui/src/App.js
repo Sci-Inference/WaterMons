@@ -15,6 +15,7 @@ import Portfolio_Insert_Page from './portfolio/insert_page';
 import Strategy_Landing_Page from "./strategy/landing_page";
 import Strategy_Insert_Page from "./strategy/insert_page";
 import Strategy_Create_Page from "./strategy/create_page";
+import Strategy_Detail_Page from './strategy/detail_page';
 
 function Home() {
   return <h2>Home</h2>;
@@ -51,6 +52,7 @@ function App() {
                 <Route exact path="/strategy" component={Strategy_Landing_Page}/>
                 <Route exact path="/strategy/create" component={Strategy_Create_Page}/>
                 <Route exact path="/strategy/insert" component={Strategy_Insert_Page}/>
+                <Route path="/strategy/detail/:name" component={Strategy_Detail_Page}/>
               </Route>
               <Route path="/back-test">
                 <BackTest />

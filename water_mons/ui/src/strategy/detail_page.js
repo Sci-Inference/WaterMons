@@ -34,7 +34,7 @@ class Strategy_Detail_Page extends React.Component {
       lineChartData: [],
       barChartData: [],
       dataCategory: [],
-      portfolioCompCol: [
+      strategyCompCol: [
         {
           field: "ticker",
           headerName: "Ticker",
@@ -48,17 +48,17 @@ class Strategy_Detail_Page extends React.Component {
           editable: true,
         },
       ],
-      portfolioCompoRow:[],
-      portfolioCompoDate: new Date("2021-07-01"),
+      strategyCompoRow:[],
+      strategyCompoDate: new Date("2021-07-01"),
     };
     this.create_table = this.create_table.bind(this);
-    this.handlePortfolioCompoDate = this.handlePortfolioCompoDate.bind(this);
+    this.handlestrategyCompoDate = this.handlestrategyCompoDate.bind(this);
     this.handleCompareField = this.handleCompareField.bind(this);
     this.handleendDateChange = this.handleendDateChange.bind(this);
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
-    this.updatePortfolioComposition = this.updatePortfolioComposition.bind(this);
+    this.updatestrategyComposition = this.updatestrategyComposition.bind(this);
     this.OnClick_deleteSelectedBenchmark =
       this.OnClick_deleteSelectedBenchmark.bind(this);
   }
@@ -108,7 +108,7 @@ class Strategy_Detail_Page extends React.Component {
     for (var i = 0; i < orgDataCategory.length; i++) {
       if (
         !uniqueCate.includes(orgDataCategory[i]["name"]) &&
-        orgDataCategory[i]["name"] != "portfolio_value"
+        orgDataCategory[i]["name"] != "strategy_value"
       ) {
         orgDataCategory.splice(i, 1);
       }
@@ -120,7 +120,7 @@ class Strategy_Detail_Page extends React.Component {
     let queryInfo = {
       startDate: this.state.startDate.toISOString().split(["T"])[0],
       endDate: this.state.endDate.toISOString().split(["T"])[0],
-      portfolio_name: this.state.strategyName,
+      strategy_name: this.state.strategyName,
       padding: true,
       benchmarks: benchmarkList,
     };
@@ -142,7 +142,7 @@ class Strategy_Detail_Page extends React.Component {
     let queryInfo = {
       startDate: this.state.startDate.toISOString().split(["T"])[0],
       endDate: this.state.endDate.toISOString().split(["T"])[0],
-      portfolio_name: this.state.strategyName,
+      strategy_name: this.state.strategyName,
       padding: true,
       benchmarks: benchmarkList,
     };
@@ -160,7 +160,7 @@ class Strategy_Detail_Page extends React.Component {
     this.setState({ barChartData: data });
   }
 
-  async updatePortfolioPerformance(benchmarkList) {
+  async updatestrategyPerformance(benchmarkList) {
     let performanceColumn = [
       {
         field: "metric",
@@ -188,7 +188,7 @@ class Strategy_Detail_Page extends React.Component {
     let queryInfo = {
       startDate: this.state.startDate.toISOString().split(["T"])[0],
       endDate: this.state.endDate.toISOString().split(["T"])[0],
-      portfolio_name: this.state.strategyName,
+      strategy_name: this.state.strategyName,
       padding: true,
       benchmarks: benchmarkList,
     };
@@ -212,7 +212,7 @@ class Strategy_Detail_Page extends React.Component {
     this.updateStateDataCategory(cateList);
     this.updateLineChart(benchmarkList);
     this.updateBarChart(benchmarkList);
-    this.updatePortfolioPerformance(benchmarkList);
+    this.updatestrategyPerformance(benchmarkList);
   }
 
   stock_data_to_date_dict(data) {
@@ -241,14 +241,14 @@ class Strategy_Detail_Page extends React.Component {
   }
 
 
-  async updatePortfolioComposition(selectedDate){
+  async updatestrategyComposition(selectedDate){
     let queryInfo = {
       selectedDate:selectedDate.toISOString().split(["T"])[0],
-      portfolio_name: this.state.strategyName,
+      strategy_name: this.state.strategyName,
     };
 
     let data = await fetch(
-      "http://localhost:5000/db/getPortfolioComposition",
+      "http://localhost:5000/db/getstrategyComposition",
       {
         method: "POST",
         headers: {
@@ -257,14 +257,14 @@ class Strategy_Detail_Page extends React.Component {
         body: JSON.stringify(queryInfo),
       }
     ).then((d) => d.json());
-    this.setState({ portfolioCompoRow: data });
+    this.setState({ strategyCompoRow: data });
   };
 
 
 
-  handlePortfolioCompoDate(e) {
-    this.setState({ portfolioCompoDate: e });
-    this.updatePortfolioComposition(e)
+  handlestrategyCompoDate(e) {
+    this.setState({ strategyCompoDate: e });
+    this.updatestrategyComposition(e)
   }
 
   OnClick_deleteSelectedBenchmark(e) {
@@ -334,71 +334,7 @@ class Strategy_Detail_Page extends React.Component {
       <div>
         <Grid container spacing={12}>
           <Grid item container sm={12} justifyContent="center">
-            <h1>Portfolio: {this.state.strategyName}</h1>
-          </Grid>
-          <Grid item sm={1}></Grid>
-          <Grid
-            item
-            sm={10}
-            justifyContent="center"
-            alignItems="center"
-            container
-          >
-            <Accordion rounded>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="panel1a-content"
-                id="panel1a-header"
-              >
-                <div>
-                  <Typography>Filter</Typography>
-                </div>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid item sm={10} container>
-                  <FormControl>
-                    <TextField
-                      id="benchmark_text_field"
-                      label="Benchmark"
-                      margin="normal"
-                      onKeyDown={this.handleCompareField}
-                    />
-                  </FormControl>
-                  {this.create_date_range_filter()}
-                </Grid>
-                <Grid item sm={10} alignContent="center" container>
-                  {this.createSelectedBenchmark()}
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </Grid>
-          <Grid item sm={1}></Grid>
-          <Grid item sm={6}>
-            <Box m={5}>
-              <Line_Chart
-                startDate={this.state.startDate.toISOString().split("T")[0]}
-                endDate={this.state.endDate.toISOString().split("T")[0]}
-                width={full_width * 0.8}
-                height={full_width * 0.5 * 0.9}
-                data={this.state.lineChartData}
-                margin={10}
-                dataColor={this.state.dataCategory}
-              />
-            </Box>
-          </Grid>
-
-          <Grid item sm={6}>
-            <Box m={5}>
-              <Bar_Chart
-                startDate={this.state.startDate.toISOString().split("T")[0]}
-                endDate={this.state.endDate.toISOString().split("T")[0]}
-                width={full_width * 0.8}
-                height={full_width * 0.5 * 0.9}
-                data={this.state.barChartData}
-                margin={10}
-                dataColor={this.state.dataCategory}
-              />
-            </Box>
+            <h1>strategy: {this.state.strategyName}</h1>
           </Grid>
 
           <Grid sm={12}>
@@ -410,47 +346,100 @@ class Strategy_Detail_Page extends React.Component {
                   id="panel1a-header"
                 >
                   <div>
-                    <Typography>Portfolio Composition</Typography>
+                    <Typography>strategy Composition</Typography>
                   </div>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                    <KeyboardDatePicker
-                      disableToolbar
-                      variant="inline"
-                      format="MM/dd/yyyy"
-                      margin="normal"
-                      minDate={this.state.startDate}
-                      maxDate={this.state.endDate}
-                      id="portfolioPicker"
-                      label="Start Date"
-                      value={this.state.portfolioCompoDate}
-                      onChange={this.handlePortfolioCompoDate}
-                      KeyboardButtonProps={{
-                        "aria-label": "change date",
-                      }}
-                    />
-                  </MuiPickersUtilsProvider>
-
                   {this.create_table(
-                    this.state.portfolioCompoRow,
-                    this.state.portfolioCompCol
+                    this.state.strategyCompoRow,
+                    this.state.strategyCompCol
                   )}
                 </AccordionDetails>
               </Accordion>
             </Box>
           </Grid>
-          <Grid item sm={3}></Grid>
-          <Grid item sm={6} alignContent="center">
-            <Box m={0}>
-              {this.create_table(
-                this.state.performanceRow,
-                this.state.performanceColumn
-              )}
-            </Box>
+
+          <Grid
+            direction={"column"}
+            justifyContent="center"
+            alignItems="center"
+            item
+            sm={6}
+          >
+            <Grid
+              item
+              sm={12}
+              justifyContent="center"
+              alignItems="center"
+              container
+            >
+              <Accordion rounded>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls="panel1a-content"
+                  id="panel1a-header"
+                >
+                  <div>
+                    <Typography>Filter</Typography>
+                  </div>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid item sm={6} container>
+                    <FormControl>
+                      <TextField
+                        id="benchmark_text_field"
+                        label="Benchmark"
+                        margin="normal"
+                        onKeyDown={this.handleCompareField}
+                      />
+                    </FormControl>
+                    {this.create_date_range_filter()}
+                  </Grid>
+                  <Grid item sm={6} alignContent="center" container>
+                    {this.createSelectedBenchmark()}
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+            </Grid>
+            <Grid item sm={12} alignContent="center">
+              <Box m={12}>
+                {this.create_table(
+                  this.state.performanceRow,
+                  this.state.performanceColumn
+                )}
+              </Box>
+            </Grid>
+          </Grid>
+
+          <Grid direction={"column"} item sm={6}>
+            <Grid item sm={12}>
+              <Box m={5}>
+                <Line_Chart
+                  startDate={this.state.startDate.toISOString().split("T")[0]}
+                  endDate={this.state.endDate.toISOString().split("T")[0]}
+                  width={full_width * 0.8}
+                  height={full_width * 0.5 * 0.9}
+                  data={this.state.lineChartData}
+                  margin={10}
+                  dataColor={this.state.dataCategory}
+                />
+              </Box>
+            </Grid>
+            <Grid item sm={12}>
+              <Box m={5}>
+                <Bar_Chart
+                  startDate={this.state.startDate.toISOString().split("T")[0]}
+                  endDate={this.state.endDate.toISOString().split("T")[0]}
+                  width={full_width * 0.8}
+                  height={full_width * 0.5 * 0.9}
+                  data={this.state.barChartData}
+                  margin={10}
+                  dataColor={this.state.dataCategory}
+                />
+              </Box>
+            </Grid>
           </Grid>
         </Grid>
-        <Grid item sm={3}></Grid>
       </div>
     );
   }
