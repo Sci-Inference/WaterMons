@@ -46,12 +46,11 @@ function NumberFormatCustom(props) {
     );
   }
 
-  
   class Strategy_Insert_Page extends React.Component {
       constructor(props){
         super(props);
         this.state = {
-          inputs: ['portfolio_name0'],
+          inputs: ['strategy_name0'],
           portOption:[]
         };
         this.appendInput = this.appendInput.bind(this);
@@ -73,7 +72,7 @@ function NumberFormatCustom(props) {
       }
 
       async componentDidMount(){
-        let data = await fetch('http://localhost:5000/db/getPortfolio')
+        let data = await fetch('http://localhost:5000/db/getStrategy')
         .then(res => res.json())
       let rows = data.map((element)=>{
           return element['name']
@@ -83,7 +82,7 @@ function NumberFormatCustom(props) {
       }
 
       appendInput() {
-        var newInput = `portfolio_name${this.state.inputs.length}`;
+        var newInput = `strategy_name${this.state.inputs.length}`;
         this.setState((prevState) => ({
           inputs: prevState.inputs.concat([newInput]),
         }));
@@ -97,32 +96,30 @@ function NumberFormatCustom(props) {
 
       async handleSubmit(){
         let alertMsg = null
-        let portfolioSelection = document.getElementById('portfolio_name').innerText;
-        if (!this.state.portOption.includes(portfolioSelection)) {alertMsg='Portfolio name is required'};
-        console.log(portfolioSelection)
+        let strategySelection = document.getElementById('strategy_name').innerText;
+        if (!this.state.portOption.includes(strategySelection)) {alertMsg='strategy name is required'};
+        console.log(strategySelection)
         let stockInfo = this.state.inputs.map((d)=>{
           let tmp = {
             ticker: document.querySelector(`#${d}-ticker`).value,
             createdDate: document.querySelector(`#${d}-date`).value,
-            stock_option: document.querySelector(`#${d}-option`).innerText,
-            purchaseNumber: document.querySelector(`#${d}-number`).value,
-            purchasePrice: document.querySelector(`#${d}-price`).value,
+            stock_signal: document.querySelector(`#${d}-signal`).innerText,
           }
           for (const [key, value] of Object.entries(tmp)) {
             if(((value == '') || (value===undefined))&& (alertMsg ===null)) {alertMsg=`${key} is required`};
-            if((key=='stock_option') && (alertMsg ===null)){
+            if((key=='stock_signal') && (alertMsg ===null)){
               console.log(value)
               if((value!= 'buy') && (value!='sell')) {alertMsg=`${key} is required`}
             }
           }
-          tmp["portfolio_name"] = portfolioSelection;
+          tmp["strategy_name"] = strategySelection;
           return tmp;
         });
         if(alertMsg != null){
           alert(alertMsg);
           return
         }
-        await fetch("http://localhost:5000/db/createPortfolioStocks", {
+        await fetch("http://localhost:5000/db/createStrategyStocks", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -154,8 +151,8 @@ function NumberFormatCustom(props) {
                 </Grid>
                 <Grid sm={2}>
                   <TextField
-                    id={`${d}-option`}
-                    label={"Option"}
+                    id={`${d}-signal`}
+                    label={"Signal"}
                     select
                     InputLabelProps={{ shrink: true }}
                   >
@@ -165,20 +162,6 @@ function NumberFormatCustom(props) {
                       </MenuItem>
                     ))}
                   </TextField>
-                </Grid>
-                <Grid sm={2}>
-                  <TextField
-                    id={`${d}-number`}
-                    label={"Number"}
-                    InputProps={{ inputComponent: NumberFormatCustom }}
-                  />
-                </Grid>
-                <Grid sm={2}>
-                  <TextField
-                    id={`${d}-price`}
-                    label={"Price"}
-                    InputProps={{ inputComponent: NumberFormatCustom }}
-                  />
                 </Grid>
               </Grid>
             </Grid>
@@ -198,13 +181,13 @@ function NumberFormatCustom(props) {
               <Grid item container sm={8}>
                 <Grid sm={3}>
                   <Box m={3}>
-                    <Typography>Portfolio Name</Typography>
+                    <Typography>strategy Name</Typography>
                   </Box>
                 </Grid>
                 <Grid sm={6}>
                   <Box m={3}>
                     <TextField
-                    id={`portfolio_name`}
+                    id={`strategy_name`}
                     select
                   >
                     {this.state.portOption.map((option) => (
