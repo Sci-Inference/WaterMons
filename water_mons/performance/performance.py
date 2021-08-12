@@ -105,7 +105,7 @@ class Portfolio_Performance(object):
 
     def performance(self,riskFree=0):
         portValue = self.period_eval()
-        portValueList = np.array([portValue[i]['portfolio_value'] + portValue[i]['holding'] for i in portValue])
+        portValueList = np.array([portValue[i]['portfolio_value'] + portValue[i]['holding'] + portValue[i]['purchase'] for i in portValue])
         return PerformanceBase(portValueList,riskFree=riskFree).performance()
 
    

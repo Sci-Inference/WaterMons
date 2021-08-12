@@ -11,9 +11,9 @@ from sqlalchemy import and_, or_, not_
 from flask_cors import CORS, cross_origin
 from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
-from water_mons.performance import portfolio,performance
 from water_mons.connection.sqlalchemy_connector import DBConnector
 from water_mons.connection.online_stock_connector import StockConnector
+from water_mons.performance.performance import Strategy_Performance,Portfolio_Performance,PerformanceBase
 
 app = Flask(__name__, static_folder='../ui/build')
 cors = CORS(app)
@@ -100,7 +100,7 @@ def get_portfolio_stock_data():
     portValue = get_portfolio(conStr, pName, startDate, endDate,padding)
     return Response(json.dumps(portValue,default=str),mimetype='application/json')
 
-def get_portfolio(conStr, pName, startDate, endDate,padding):
+def get_portfolio(conStr, pName, startDate, endDate):
     dbc = DBConnector(conStr)
     session = dbc.session()
     db_data = list(
@@ -113,7 +113,7 @@ def get_portfolio(conStr, pName, startDate, endDate,padding):
         )
     session.close()
     conStr = read_config()['data_connection']['STOCK_CONNECTION']
-    p = portfolio.Portfolio(conStr=conStr)
+    p = Portfolio_Performance(conStr=conStr)
     for i in db_data:
         p.append_ticker(
             ticker = i['ticker'],
@@ -122,16 +122,17 @@ def get_portfolio(conStr, pName, startDate, endDate,padding):
             price=i['purchasePrice'],
             number=i['purchaseNumber']
             )
-    portValue = p.create_portfolio()
-    if padding:
-        print('pad')
-        dtRange = list(map(lambda x: x.strftime("%Y-%m-%d"),pd.date_range(startDate,endDate).tolist()))
-        cacheValue = {'portfolio_value':0,'holding':0}
-        for i in dtRange:
-            if i in portValue:
-                cacheValue = portValue[i]
-                continue
-            portValue[i] = cacheValue
+    return p
+
+def padding_period_eval(perforamnceObject,startDate,endDate):
+    portValue = perforamnceObject.period_eval()
+    dtRange = list(map(lambda x: x.strftime("%Y-%m-%d"),pd.date_range(startDate,endDate).tolist()))
+    cacheValue = {'portfolio_value':0,'holding':0}
+    for i in dtRange:
+        if i in portValue:
+            cacheValue = portValue[i]
+            continue
+        portValue[i] = cacheValue
     return portValue
 
 
@@ -170,14 +171,13 @@ def get_portfolio_performance():
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
     dataDict = {}
-    portValue = get_portfolio(conStr, pName, startDate, endDate,False)
-    portValueList = np.array([portValue[i]['portfolio_value'] + portValue[i]['holding'] for i in portValue])
-    perform = performance.PerformanceBase(portValueList,0).performance()
+    p = get_portfolio(conStr, pName, startDate, endDate)
+    perform = p.performance()
     dataDict['Base'] = perform
     for i in bList:
         dbc = StockConnector(i,stockConStr)
         df = dbc.get_data(data['startDate'],data['endDate'])
-        benchPerform = performance.PerformanceBase(df.Close.values,0).performance()
+        benchPerform = PerformanceBase(df.Close.values,0).performance()
         dataDict[i] = benchPerform
     res = performance_to_detail_rows(dataDict)
     print(res)
@@ -195,9 +195,10 @@ def get_peroformance_line_chart():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
-    pValue = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate,padding=True)
+    p = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate)
+    pValue = padding_period_eval(p,startDate=startDate,endDate=endDate)
     df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
-    df['Close'] = df['portfolio_value'] + df['holding']
+    df['Close'] = df['portfolio_value'] + df['holding'] + df['purchase']
     df = df[['index','Close']]
     df['ticker'] = 'Base'
     df.columns = ['Date','Close','ticker']
@@ -224,7 +225,8 @@ def get_performance_bar_chart():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
-    pValue = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate,padding=True)
+    p = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate)
+    pValue = padding_period_eval(p,startDate=startDate,endDate=endDate)
     df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
     df['Close'] = df['portfolio_value'] + df['holding']
     df = df[['index','Close']]
@@ -238,7 +240,7 @@ def get_performance_bar_chart():
             continue
         df = df.append(tmp,ignore_index=True)
     res = pd.DataFrame(df.pivot('Date','ticker','Close').to_records()).dropna()
-    tmp = res.sort_values('Date')[filter(lambda x: x!='Date',res.columns)].apply(lambda x: x - x.shift(1),axis =0)
+    tmp = res.sort_values('Date')[filter(lambda x: x!='Date',res.columns)].apply(lambda x: np.abs(x) - np.abs(x.shift(1)),axis =0)
     tmp['Date'] = res['Date']
     res = tmp.dropna().to_dict('records')
     return Response(json.dumps(res,default=str),mimetype='application/json')

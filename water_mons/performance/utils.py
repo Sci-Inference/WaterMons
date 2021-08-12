@@ -5,8 +5,6 @@ from typing import Optional
 def _timeSeries_check(timeSeries:np.array):
     if len(timeSeries) <= 1:
         raise ValueError("timeSeries Data should have at least two items")
-    if (timeSeries < 1).any():
-        raise ValueError("timeSeries items should be greater than 0")
 
 
 def max_drawn(timeSeries:np.array)-> np.array:
