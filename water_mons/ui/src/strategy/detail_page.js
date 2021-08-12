@@ -42,13 +42,20 @@ class Strategy_Detail_Page extends React.Component {
           editable: true,
         },
         {
-          field: "holdingNumber",
-          headerName: "Holding Number",
+          field: "createdDate",
+          headerName: "Date",
+          width: 150,
+          editable: true,
+        },
+        
+        {
+          field: "stock_signal",
+          headerName: "Signal",
           width: 300,
           editable: true,
         },
       ],
-      strategyCompoRow:[],
+      strategyCompoRow: [],
       strategyCompoDate: new Date("2021-07-01"),
     };
     this.create_table = this.create_table.bind(this);
@@ -58,7 +65,7 @@ class Strategy_Detail_Page extends React.Component {
     this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.createSelectedBenchmark = this.createSelectedBenchmark.bind(this);
     this.create_date_range_filter = this.create_date_range_filter.bind(this);
-    this.updatestrategyComposition = this.updatestrategyComposition.bind(this);
+    this.updateStrategyComposition = this.updateStrategyComposition.bind(this);
     this.OnClick_deleteSelectedBenchmark =
       this.OnClick_deleteSelectedBenchmark.bind(this);
   }
@@ -126,7 +133,7 @@ class Strategy_Detail_Page extends React.Component {
     };
 
     const data = await fetch(
-      "http://localhost:5000/db/getPerformanceLineChart",
+      "http://localhost:5000/db/getStrategyLineChart",
       {
         method: "POST",
         headers: {
@@ -211,8 +218,9 @@ class Strategy_Detail_Page extends React.Component {
     });
     this.updateStateDataCategory(cateList);
     this.updateLineChart(benchmarkList);
-    this.updateBarChart(benchmarkList);
-    this.updatestrategyPerformance(benchmarkList);
+    // this.updateBarChart(benchmarkList);
+    // this.updatestrategyPerformance(benchmarkList);
+    this.updateStrategyComposition()
   }
 
   stock_data_to_date_dict(data) {
@@ -240,31 +248,26 @@ class Strategy_Detail_Page extends React.Component {
     }
   }
 
-
-  async updatestrategyComposition(selectedDate){
+  async updateStrategyComposition() {
     let queryInfo = {
-      selectedDate:selectedDate.toISOString().split(["T"])[0],
+      startDate: this.state.startDate.toISOString().split(["T"])[0],
+      endDate: this.state.endDate.toISOString().split(["T"])[0],
       strategy_name: this.state.strategyName,
     };
 
-    let data = await fetch(
-      "http://localhost:5000/db/getstrategyComposition",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(queryInfo),
-      }
-    ).then((d) => d.json());
+    let data = await fetch("http://localhost:5000/db/getStrategyStocks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(queryInfo),
+    }).then((d) => d.json());
     this.setState({ strategyCompoRow: data });
-  };
-
-
+  }
 
   handlestrategyCompoDate(e) {
     this.setState({ strategyCompoDate: e });
-    this.updatestrategyComposition(e)
+    this.updatestrategyComposition(e);
   }
 
   OnClick_deleteSelectedBenchmark(e) {

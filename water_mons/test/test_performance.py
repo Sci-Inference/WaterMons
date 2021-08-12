@@ -2,8 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from water_mons.performance.utils import *
-from water_mons.performance.performance import PerformanceBase
-from water_mons.performance.portfolio import Portfolio
+from water_mons.performance.performance import PerformanceBase,Portfolio_Performance,Strategy_Performance
 
 
 @pytest.fixture
@@ -89,28 +88,49 @@ class Test_Performance_PerformanceBase:
 class Test_Portfolio:
     
     def test_create_portfolio(self):
-        p = Portfolio('yahoo')
-        p.append_ticker('CG.TO','2021-07-21','buy',9.37,1)
-        p.append_ticker('CG.TO','2021-07-22','sell',9.5,1)
-        p.append_ticker('CG.TO','2021-07-23','buy',9.32,1)
-        p.append_ticker('X.TO','2021-07-23','buy',134.5,2)
-        p.append_ticker('X.TO','2021-07-26','sell',134.2,1)
-        p.append_ticker('X.TO','2021-07-27','sell',134.6,1)
-        p.append_ticker('X.TO','2021-07-27','buy',134.5,1)
+        p = Portfolio_Performance('yahoo')
+        p.append_ticker('CM.TO','2020-07-21','buy',90,2)
+        p.append_ticker('CM.TO','2020-07-22','sell',90,1)
+        p.append_ticker('CM.TO','2020-07-23','sell',90,1)
+        p.append_ticker('TD.TO','2020-07-23','buy',60,1)
+        p.append_ticker('TD.TO','2020-07-24','sell',60,1)
+        p.append_ticker('TD.TO','2020-07-27','buy',60,1)
         p.pad_tickers()
-        res = p.create_portfolio()
+        print(p.tickerList)
+        res = p.period_eval()
         print(res)
         result = [
-            {'Date':'2021-07-21','portfolio_value':9.55,'holding':0},
-            {'Date':'2021-07-22','portfolio_value':0,'holding':9.5},
-            {'Date':'2021-07-23','portfolio_value':278.75,'holding':0.18},
-            {'Date':'2021-07-26','portfolio_value':143.89,'holding':134.38},
-            {'Date':'2021-07-27','portfolio_value':144.29,'holding':134.48},
+            {'Date':'2020-07-21','portfolio_value':179.26,'holding':0,'purchase':-180},
+            {'Date':'2020-07-22','portfolio_value':89.26,'holding':90,'purchase':0},
+            {'Date':'2020-07-23','portfolio_value':58.72,'holding':180,'purchase':-60},
+            {'Date':'2020-07-24','portfolio_value':0,'holding':240,'purchase':0},
+            {'Date':'2020-07-27','portfolio_value':57.62,'holding':240,'purchase':-60},
         ]
 
         for i in result:
+            assert pytest.approx(res[i['Date']]['portfolio_value'],0.01) == i['portfolio_value']
+            assert pytest.approx(res[i['Date']]['holding'],0.01) == i['holding']
+            assert pytest.approx(res[i['Date']]['purchase'],0.01) == i['purchase']
+        p.performance()
+
+
+class Test_Strategy:
+    def test_create_strategy(self):
+        s = Strategy_Performance('yahoo')
+        s.append_ticker('CM.TO','2021-07-21','buy',1)
+        s.append_ticker('CM.TO','2021-07-22','sell',1)
+        s.append_ticker('TD.TO','2021-07-21','buy',1)
+        s.append_ticker('TD.TO','2021-07-23','sell',1)
+        s.pad_tickers()
+        res = s.period_eval()
+        result = [
+            {'Date':'2021-07-21','portfolio_value':225.41,'holding':0,'purchase':-225.41},
+            {'Date':'2021-07-22','portfolio_value':82.41,'holding':142.52,'purchase':0},
+            {'Date':'2021-07-23','portfolio_value':0,'holding':225.2,'purchase':0},
+        ]
+        for i in result:
+            print(i["Date"])
             assert pytest.approx(res[i['Date']]['portfolio_value']) == i['portfolio_value']
             assert pytest.approx(res[i['Date']]['holding']) == i['holding']
-
-
-    
+            assert pytest.approx(res[i['Date']]['purchase'],0.01) == i['purchase']
+        s.performance()
