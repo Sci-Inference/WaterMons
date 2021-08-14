@@ -11,15 +11,15 @@ from sqlalchemy import and_, or_, not_
 from flask_cors import CORS, cross_origin
 from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
-from water_mons.flask_blueprint import portfolio_route
+from water_mons.flask_blueprint import portfolio_route,strategy_route
 from water_mons.connection.sqlalchemy_connector import DBConnector
 from water_mons.connection.online_stock_connector import StockConnector
 from water_mons.performance.performance import Strategy_Performance,Portfolio_Performance,PerformanceBase
 
 app = Flask(__name__, static_folder='../ui/build')
 app.register_blueprint(portfolio_route.app)
+app.register_blueprint(strategy_route.app)
 cors = CORS(app)
-# app.config['CORS_HEADERS'] = 'Content-Type'
 
 def read_config():
     with open("config.yaml", 'r') as stream:
