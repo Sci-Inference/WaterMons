@@ -32,6 +32,7 @@ setup(
         'water_mons/connection',
         'water_mons/backtest',
         'water_mons/performance',
+        'water_mons/flask_blueprint',
         'water_mons/test',
     ],
     license='MIT',
