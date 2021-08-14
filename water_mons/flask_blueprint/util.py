@@ -60,7 +60,7 @@ def get_strategy(conStr,sName,startDate,endDate):
         s.append_ticker(
             ticker = i['ticker'],
             createDate=i['createdDate'].strftime('%Y-%m-%d'),
-            option=i['stock_option'],
+            option=i['stock_signal'],
             number=1
             )
     return s

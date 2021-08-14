@@ -11,6 +11,7 @@ from sqlalchemy import and_, or_, not_
 from flask_cors import CORS, cross_origin
 from flask import Flask, send_from_directory
 from water_mons.flask_blueprint.util import *
+from water_mons.flask_blueprint import util
 from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
 from water_mons.connection.online_stock_connector import StockConnector
@@ -80,7 +81,7 @@ def get_strategy_stocks():
 @app.route('/db/getStrategyLineChart',methods=['POST','GET'])
 def get_strategy_line_chart():
     data = request.json
-    pName = data['strategy_name']
+    sName = data['strategy_name']
     if 'benchmarks' in data:
         bList = data['benchmarks']
     else:
@@ -89,10 +90,12 @@ def get_strategy_line_chart():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
-    p = get_strategy(conStr,pName,startDate=startDate,endDate=endDate)
-    pValue = padding_period_eval(p,startDate=startDate,endDate=endDate)
-    df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
-    df['Close'] = df['strategy_value'] + df['holding'] + df['purchase']
+
+    s = util.get_strategy(conStr,sName,startDate=startDate,endDate=endDate)
+    sValue = padding_period_eval(s,startDate=startDate,endDate=endDate)
+    df = pd.DataFrame(pd.DataFrame.from_dict(sValue,'index').to_records())
+
+    df['Close'] = df['portfolio_value'] + df['holding'] + df['purchase']
     df = df[['index','Close']]
     df['ticker'] = 'Base'
     df.columns = ['Date','Close','ticker']
@@ -106,3 +109,35 @@ def get_strategy_line_chart():
     res = pd.DataFrame(df.pivot('Date','ticker','Close').to_records()).dropna().to_dict('records')
     return Response(json.dumps(res,default=str),mimetype='application/json')
     
+
+@app.route('/db/getStrategyBarChart',methods=['GET','POST'])
+def get_performance_bar_chart():
+    data = request.json
+    pName = data['portfolio_name']
+    if 'benchmarks' in data:
+        bList = data['benchmarks']
+    else:
+        bList = []
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    p = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate)
+    pValue = padding_period_eval(p,startDate=startDate,endDate=endDate)
+    df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
+    df['Close'] = df['portfolio_value'] + df['holding']
+    df = df[['index','Close']]
+    df['ticker'] = 'Base'
+    df.columns = ['Date','Close','ticker']
+    for ix,v in enumerate(bList):
+        tmp = StockConnector(v,stockConStr).get_data(startDate=data['startDate'],endDate=data['endDate'])[['Date','ticker','Close']]
+        tmp['Date'] = tmp['Date'].dt.strftime('%Y-%m-%d')
+        if v == 0:
+            df = tmp
+            continue
+        df = df.append(tmp,ignore_index=True)
+    res = pd.DataFrame(df.pivot('Date','ticker','Close').to_records()).dropna()
+    tmp = res.sort_values('Date')[filter(lambda x: x!='Date',res.columns)].apply(lambda x: np.abs(x) - np.abs(x.shift(1)),axis =0)
+    tmp['Date'] = res['Date']
+    res = tmp.dropna().to_dict('records')
+    return Response(json.dumps(res,default=str),mimetype='application/json')

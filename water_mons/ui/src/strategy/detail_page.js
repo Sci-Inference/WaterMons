@@ -143,6 +143,7 @@ class Strategy_Detail_Page extends React.Component {
       }
     ).then((d) => d.json());
     this.setState({ lineChartData: data });
+    console.log(data);
   }
 
   async updateBarChart(benchmarkList) {
