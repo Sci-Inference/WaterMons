@@ -156,7 +156,7 @@ class Strategy_Detail_Page extends React.Component {
     };
 
     const data = await fetch(
-      "http://localhost:5000/db/getPerformanceBarChart",
+      "http://localhost:5000/db/getStrategyBarChart",
       {
         method: "POST",
         headers: {
@@ -201,7 +201,7 @@ class Strategy_Detail_Page extends React.Component {
       benchmarks: benchmarkList,
     };
 
-    const data = await fetch("http://localhost:5000/db/getPerformance", {
+    const data = await fetch("http://localhost:5000/db/getStrategyPerformance", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -219,8 +219,8 @@ class Strategy_Detail_Page extends React.Component {
     });
     this.updateStateDataCategory(cateList);
     this.updateLineChart(benchmarkList);
-    // this.updateBarChart(benchmarkList);
-    // this.updatestrategyPerformance(benchmarkList);
+    this.updateBarChart(benchmarkList);
+    this.updatestrategyPerformance(benchmarkList);
     this.updateStrategyComposition()
   }
 

@@ -111,9 +111,9 @@ def get_strategy_line_chart():
     
 
 @app.route('/db/getStrategyBarChart',methods=['GET','POST'])
-def get_performance_bar_chart():
+def get_strategy_bar_chart():
     data = request.json
-    pName = data['portfolio_name']
+    sName = data['strategy_name']
     if 'benchmarks' in data:
         bList = data['benchmarks']
     else:
@@ -122,10 +122,10 @@ def get_performance_bar_chart():
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
-    p = get_portfolio(conStr,pName,startDate=startDate,endDate=endDate)
-    pValue = padding_period_eval(p,startDate=startDate,endDate=endDate)
-    df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
-    df['Close'] = df['portfolio_value'] + df['holding']
+    s = util.get_strategy(conStr,sName,startDate=startDate,endDate=endDate)
+    sValue = padding_period_eval(s,startDate=startDate,endDate=endDate)
+    df = pd.DataFrame(pd.DataFrame.from_dict(sValue,'index').to_records())
+    df['Close'] = df['portfolio_value'] + df['holding'] + df['purchase']
     df = df[['index','Close']]
     df['ticker'] = 'Base'
     df.columns = ['Date','Close','ticker']
@@ -140,4 +140,29 @@ def get_performance_bar_chart():
     tmp = res.sort_values('Date')[filter(lambda x: x!='Date',res.columns)].apply(lambda x: np.abs(x) - np.abs(x.shift(1)),axis =0)
     tmp['Date'] = res['Date']
     res = tmp.dropna().to_dict('records')
+    return Response(json.dumps(res,default=str),mimetype='application/json')
+
+
+@app.route('/db/getStrategyPerformance',methods=['POST','GET'])
+def get_strategy_performance():
+    data = request.json
+    sName = data['strategy_name']
+    if 'benchmarks' in data:
+        bList = data['benchmarks']
+    else:
+        bList = []
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    dataDict = {}
+    s = util.get_strategy(conStr, sName, startDate, endDate)
+    perform = s.performance()
+    dataDict['Base'] = perform
+    for i in bList:
+        dbc = StockConnector(i,stockConStr)
+        df = dbc.get_data(data['startDate'],data['endDate'])
+        benchPerform = PerformanceBase(df.Close.values,0).performance()
+        dataDict[i] = benchPerform
+    res = performance_to_detail_rows(dataDict)
     return Response(json.dumps(res,default=str),mimetype='application/json')
