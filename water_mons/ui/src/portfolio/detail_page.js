@@ -18,8 +18,8 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
+import Basic_Line from "../utils/echart_line";
 
-let margin = 50;
 
 class Portfolio_Detail_Page extends React.Component {
   constructor(props) {
@@ -375,7 +375,7 @@ class Portfolio_Detail_Page extends React.Component {
           <Grid item sm={1}></Grid>
           <Grid item sm={6}>
             <Box m={5}>
-              <Line_Chart
+              {/* <Line_Chart
                 startDate={this.state.startDate.toISOString().split("T")[0]}
                 endDate={this.state.endDate.toISOString().split("T")[0]}
                 width={full_width * 0.8}
@@ -383,7 +383,8 @@ class Portfolio_Detail_Page extends React.Component {
                 data={this.state.lineChartData}
                 margin={10}
                 dataColor={this.state.dataCategory}
-              />
+              /> */}
+              <Basic_Line data={this.state.lineChartData} xCol={'Date'}/>
             </Box>
           </Grid>
 
