@@ -18,6 +18,8 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Typography from "@material-ui/core/Typography";
+import Basic_Line from "../utils/echart_line";
+import Basic_Bar from "../utils/echart_bar";
 
 let margin = 50;
 
@@ -418,28 +420,12 @@ class Strategy_Detail_Page extends React.Component {
           <Grid direction={"column"} item sm={6}>
             <Grid item sm={12}>
               <Box m={5}>
-                <Line_Chart
-                  startDate={this.state.startDate.toISOString().split("T")[0]}
-                  endDate={this.state.endDate.toISOString().split("T")[0]}
-                  width={full_width * 0.8}
-                  height={full_width * 0.5 * 0.9}
-                  data={this.state.lineChartData}
-                  margin={10}
-                  dataColor={this.state.dataCategory}
-                />
+                <Basic_Line data={this.state.lineChartData} xCol={'Date'}/>
               </Box>
             </Grid>
             <Grid item sm={12}>
               <Box m={5}>
-                <Bar_Chart
-                  startDate={this.state.startDate.toISOString().split("T")[0]}
-                  endDate={this.state.endDate.toISOString().split("T")[0]}
-                  width={full_width * 0.8}
-                  height={full_width * 0.5 * 0.9}
-                  data={this.state.barChartData}
-                  margin={10}
-                  dataColor={this.state.dataCategory}
-                />
+              <Basic_Bar data={this.state.barChartData} xCol={'Date'}></Basic_Bar>
               </Box>
             </Grid>
           </Grid>
