@@ -7,3 +7,4 @@ sqlalchemy
 fastapi
 uvicorn[standard]
 pyyaml
+pyportfolioopt

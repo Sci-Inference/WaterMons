@@ -3,8 +3,6 @@ import pandas as pd
 import yfinance as yf
 
 
-
-
 class StockConnector(object):
     def __init__(self,ticker,connectorStr) -> None:
         super().__init__()

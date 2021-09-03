@@ -15,6 +15,7 @@ required = [
     'pytest-dependency',
     'scipy',
     'matplotlib',
+    'pyportfolioopt',
     'sklearn',
     'joblib'
 ]
