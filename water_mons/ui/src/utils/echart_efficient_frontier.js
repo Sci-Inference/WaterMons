@@ -41,7 +41,9 @@ class Efficient_Frontier extends React.Component {
   draw(data) {
     console.log(data);
     let option = {
-      tooltip: {},
+      tooltip: {
+        trigger: 'axis'
+    },
       xAxis: {
           min:Math.min(...data['lineStd']),
           type:'value',
@@ -51,8 +53,18 @@ class Efficient_Frontier extends React.Component {
         type: "value",
       },
       series: [{
+        type:'line',
         data:data['frontierLine'],
-        type:'line'
+        markPoint: {
+          data: [
+            {name: 'optimal_point', value: 'optimal', xAxis: data['pav'], yAxis: data['par']}
+          ]
+      },
+      markLine: {
+        data: [
+            {type: 'average', name: '平均值'}
+        ]
+    }
         }],
     };
     console.log(option);
