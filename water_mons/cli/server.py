@@ -56,6 +56,8 @@ def get_stock_data():
         res.extend(df.to_dict('records'))
     return Response(json.dumps(res,default=str),mimetype='application/json')
 
+
+
 def run():
     app.run(use_reloader=True, port=5000, threaded=True)
 

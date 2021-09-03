@@ -18,7 +18,7 @@ import Strategy_Create_Page from "./strategy/create_page";
 import Strategy_Detail_Page from './strategy/detail_page';
 import Basic_Line from './utils/echart_line';
 import { Fragment } from 'react';
-
+import Efficient_Frontier from './utils/echart_efficient_frontier';
 
 
 
@@ -40,7 +40,7 @@ function BackTest() {
   return <h2>Back</h2>;
 }
 function RiskAssessment() {
-  return <h2>Risk</h2>;
+  return <Efficient_Frontier tickerList={['AT.To','BB.TO','CM.TO']} method={'sharpe'} startDate={'2021-03-01'} endDate={'2021-05-30'}/>;
 }
 
 function App() {

@@ -16,20 +16,24 @@ from water_mons.performance.efficient_frontier import Efficient_Frontier
 app =  Blueprint('risk_assessment',__name__)
 
 
-app.route('/risk/efficientFrontier',methods=['Post'])
+@app.route('/risk/efficientFrontier',methods=['POST','GET'])
 def get_efficient_frontier():
     data = request.json
+    print(data)
     tickerList = data['tickers']
     method = data['method']
+    startDate = data['startDate']
+    endDate = data['endDate']
     stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
     df = None
     for ticker in tickerList:
-        sc = StockConnector(ticker,stockConStr).get_data()
+        sc = StockConnector(ticker,stockConStr).get_data(startDate=startDate,endDate=endDate)
         if df is None:
             df = sc
             continue
         df = df.append(sc,ignore_index = True)
-    df = pd.DataFrame(df.pivot('Date','symbol','Close').to_records())
+    print(df.head())
+    df = pd.DataFrame(df.pivot('Date','ticker','Close').to_records())
     df = df.set_index('Date')
     ef = Efficient_Frontier()
     ef.CLA(df,method)
@@ -43,6 +47,7 @@ def get_efficient_frontier():
         'weights':wei,
         'lineRe':reLine,
         'lineStd':stdLine,
+        'frontierLine': list(zip(stdLine,reLine)),
         'lineWeiRe':weiLine[0],
         'lineWeiStd':weiLine[1]
     }
