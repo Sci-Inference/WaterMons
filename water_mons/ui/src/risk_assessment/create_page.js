@@ -81,35 +81,38 @@ class Risk_Assessment_Create_Page extends React.Component {
 
   async handleSubmit() {
     let alertMsg = null;
-    let portfolioName = document.querySelector("#portfolio_name").value;
+    let assessmentName = document.querySelector("#risk_assessment_name").value;
+    let basePort = document.getElementById('portfolio_name').innerText;
     let desc = document.querySelector("#description").value;
-    if (portfolioName == "" && alertMsg === null) {
-      alertMsg = "portfolio name is requirement";
+    if (assessmentName == "" && alertMsg === null) {
+      alertMsg = "Assessment name is required";
     }
     if (desc == "" && alertMsg === null) {
-      alertMsg = "portfolio description is requirement";
+      alertMsg = "portfolio description is required";
     }
-
+    if (!this.state.portOption.includes(basePort)) 
+    {alertMsg='Base portfolio is required'};
     if (alertMsg != null) {
       alert(alertMsg);
       return;
     }
 
     let today = new Date();
-    let portfolioData = {
-      name: portfolioName,
+    let insertData = {
+      name: assessmentName,
       description: desc,
+      basePort:basePort,
       createdDate: `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`,
     };
 
     let createPortRes = await fetch(
-      "http://localhost:5000/db/createPortfolio",
+      "http://localhost:5000/db/createRiskAssessment",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(portfolioData),
+        body: JSON.stringify(insertData),
       }
     );
 
@@ -118,57 +121,7 @@ class Risk_Assessment_Create_Page extends React.Component {
     }
   }
 
-  create_stock_list() {
-    return this.state.inputs.map((d) => {
-      let options = ["sell", "buy"];
-      return (
-        <Grid justifyContent="center" alignContent="center" spacing={12}>
-          <Grid item container sm={12}>
-            <Grid sm={3}>
-              <TextField id={`${d}-ticker`} label={"Ticker"} />
-            </Grid>
-            <Grid sm={3}>
-              <TextField
-                id={`${d}-date`}
-                label={"Create"}
-                type="date"
-                defaultValue={new Date()}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid sm={2}>
-              <TextField
-                id={`${d}-option`}
-                label={"Option"}
-                select
-                InputLabelProps={{ shrink: true }}
-              >
-                {options.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid sm={2}>
-              <TextField
-                id={`${d}-number`}
-                label={"Number"}
-                InputProps={{ inputComponent: NumberFormatCustom }}
-              />
-            </Grid>
-            <Grid sm={2}>
-              <TextField
-                id={`${d}-price`}
-                label={"Price"}
-                InputProps={{ inputComponent: NumberFormatCustom }}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-      );
-    });
-  }
+
 
   render() {
     console.log("render");

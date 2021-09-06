@@ -64,6 +64,15 @@ def get_risk_assessment_landing():
     session.close()
     return Response(json.dumps(db_data,default=str),mimetype='application/json')
 
-@app.route('/db/createRiskAssessment')
+@app.route('/db/createRiskAssessment',methods=['POST','GET'])
 def create_risk_assessment():
-    pass
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    dbc = DBConnector(conStr)
+    data = request.json
+    dbc.create_risk_assessment(
+        assessment_name=data['name'],
+        description=data['description'],
+        portfolioId=data['basePort'],
+        createdDate=datetime.datetime.strptime(data['createdDate'],'%Y-%m-%d')
+        )
+    return "200"
