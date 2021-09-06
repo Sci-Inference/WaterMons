@@ -16,6 +16,9 @@ import Strategy_Landing_Page from "./strategy/landing_page";
 import Strategy_Insert_Page from "./strategy/insert_page";
 import Strategy_Create_Page from "./strategy/create_page";
 import Strategy_Detail_Page from './strategy/detail_page';
+import Risk_Assessment_Create_Page from './risk_assessment/create_page';
+import Risk_Assessment_Detail_Page from './risk_assessment/detail_page';
+import Risk_Assessment_Landing_Page from './risk_assessment/landing_page';
 import Basic_Line from './utils/echart_line';
 import { Fragment } from 'react';
 import Efficient_Frontier from './utils/echart_efficient_frontier';
@@ -67,8 +70,10 @@ function App() {
               <Route path="/back-test">
                 <BackTest />
               </Route>
-              <Route path="/assessment">
-                <RiskAssessment />
+              <Route path="/assessment" component={Risk_Assessment_Landing_Page}>
+              <Route exact path="/assessment" component={Risk_Assessment_Landing_Page}/>
+                <Route exact path="/assessment/create" component={Risk_Assessment_Create_Page}/>
+                <Route path="/assessment/detail/:name" component={Risk_Assessment_Detail_Page}/>
               </Route>
             </Switch>
           </div>

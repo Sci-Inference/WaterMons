@@ -52,3 +52,18 @@ def get_efficient_frontier():
         'tickers':ef.tickers
     }
     return Response(json.dumps(output,default=str),mimetype='application/json')
+
+
+@app.route('/db/getRiskAssessment')
+def get_risk_assessment_landing():
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    dbc = DBConnector(conStr)
+    session = dbc.session()
+    db_data = list(map(lambda x: dbc.sqlalchmey_to_dict(x),
+    session.query(Risk_Assessment).all()))
+    session.close()
+    return Response(json.dumps(db_data,default=str),mimetype='application/json')
+
+@app.route('/db/createRiskAssessment')
+def create_risk_assessment():
+    pass

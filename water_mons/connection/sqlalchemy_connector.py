@@ -41,7 +41,7 @@ class DBConnector(object):
         data = Strategy(name=name, createdDate=createdDate,
                          description=description)
         session.add(data)
-        session.commit()
+        session.commit()   
 
     def insert_strategy_stocks(self, stocks) -> None:
         session = self.session()
@@ -50,6 +50,18 @@ class DBConnector(object):
             data.append(Strategy_Stock(**i))
         session.bulk_save_objects(data)
         session.commit()
+
+
+    def create_risk_assessment(self,assessment_name:str,description:str,portfolioId:str,createdDate: datetime.datetime = datetime.datetime.now()):
+        session = self.session()
+        data = Risk_Assessment(
+            name=assessment_name, 
+            createdDate=createdDate,
+            description=description,
+            basePortfolio=portfolioId)
+        session.add(data)
+        session.commit()  
+
 
     def sqlalchmey_to_dict(self, obj) -> dict:
         return {c.key: getattr(obj, c.key)

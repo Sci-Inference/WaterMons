@@ -16,7 +16,7 @@ import {
 import CreateIcon from '@material-ui/icons/Create';
 
 
-class Portfolio_Landing_Page extends React.Component {
+class Risk_Assessment_Landing_Page extends React.Component {
   constructor(props) {
     super(props);
     this.create_table = this.create_table.bind(this);
@@ -65,7 +65,7 @@ class Portfolio_Landing_Page extends React.Component {
   }
 
   async componentDidMount() {
-    let data = await fetch('http://localhost:5000/db/getPortfolio')
+    let data = await fetch('http://localhost:5000/db/getRiskAssessment')
       .then(res => res.json())
     let rows = data.map((element,index)=>{
         element['id'] = index
@@ -134,4 +134,4 @@ class Portfolio_Landing_Page extends React.Component {
   }
 }
 
-export default withRouter(Portfolio_Landing_Page);
+export default withRouter(Risk_Assessment_Landing_Page);

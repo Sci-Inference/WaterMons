@@ -21,7 +21,7 @@ import Typography from "@material-ui/core/Typography";
 import Basic_Line from "../utils/echart_line";
 import Basic_Bar from "../utils/echart_bar";
 
-class Portfolio_Detail_Page extends React.Component {
+class Risk_Assessment_Detail_Page extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -440,4 +440,4 @@ class Portfolio_Detail_Page extends React.Component {
   }
 }
 
-export default Portfolio_Detail_Page;
+export default Risk_Assessment_Detail_Page;

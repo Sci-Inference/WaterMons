@@ -45,15 +45,13 @@ function NumberFormatCustom(props) {
   );
 }
 
-class Portfolio_Create_Page extends React.Component {
+class Risk_Assessment_Create_Page extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       inputs: [],
+      portOption: [],
     };
-    this.appendInput = this.appendInput.bind(this);
-    this.create_stock_list = this.create_stock_list.bind(this);
-    this.removeInput = this.removeInput.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.theme = createMuiTheme({
       palette: {
@@ -69,17 +67,16 @@ class Portfolio_Create_Page extends React.Component {
     });
   }
 
-  appendInput() {
-    var newInput = `portfolio_name${this.state.inputs.length}`;
-    this.setState((prevState) => ({
-      inputs: prevState.inputs.concat([newInput]),
-    }));
-  }
-
-  removeInput() {
-    this.setState((prevState) => ({
-      inputs: prevState.inputs.length > 1 ? prevState.inputs.slice(-1) : [],
-    }));
+  async componentDidMount() {
+    console.log("mount");
+    let data = await fetch("http://localhost:5000/db/getPortfolio").then(
+      (res) => res.json()
+    );
+    let rows = data.map((element) => {
+      return element["name"];
+    });
+    console.log(rows);
+    this.setState({ portOption: rows });
   }
 
   async handleSubmit() {
@@ -93,28 +90,6 @@ class Portfolio_Create_Page extends React.Component {
       alertMsg = "portfolio description is requirement";
     }
 
-    let stockInfo = this.state.inputs.map((d) => {
-      let tmp = {
-        ticker: document.querySelector(`#${d}-ticker`).value,
-        createdDate: document.querySelector(`#${d}-date`).value,
-        stock_option: document.querySelector(`#${d}-option`).innerText,
-        purchaseNumber: document.querySelector(`#${d}-number`).value,
-        purchasePrice: document.querySelector(`#${d}-price`).value,
-      };
-      for (const [key, value] of Object.entries(tmp)) {
-        if ((value == "" || value === undefined) && alertMsg === null) {
-          alertMsg = `${key} is required`;
-        }
-        if (key == "stock_option" && alertMsg === null) {
-          console.log(value);
-          if (value != "buy" && value != "sell") {
-            alertMsg = `${key} is required`;
-          }
-        }
-      }
-      tmp["portfolio_name"] = portfolioName;
-      return tmp;
-    });
     if (alertMsg != null) {
       alert(alertMsg);
       return;
@@ -137,22 +112,9 @@ class Portfolio_Create_Page extends React.Component {
         body: JSON.stringify(portfolioData),
       }
     );
-    
-    if (stockInfo.length == 0 && createPortRes.status == 200){
-      this.props.history.goBack();
-    }
 
-    if (stockInfo.length > 0 && createPortRes.status == 200) {
-      let psStatus = await fetch("http://localhost:5000/db/createPortfolioStocks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(stockInfo),
-      });
-      if (psStatus.status==200){
-        this.props.history.goBack();
-    }
+    if (createPortRes.status == 200) {
+      this.props.history.goBack();
     }
   }
 
@@ -209,6 +171,7 @@ class Portfolio_Create_Page extends React.Component {
   }
 
   render() {
+    console.log("render");
     return (
       <div>
         <Grid justifyContent="center" alignContent="center" spacing={12}>
@@ -220,12 +183,12 @@ class Portfolio_Create_Page extends React.Component {
           <Grid item container sm={8}>
             <Grid sm={3}>
               <Box m={3}>
-                <Typography>Portfolio Name</Typography>
+                <Typography>Risk Assessment Name</Typography>
               </Box>
             </Grid>
             <Grid sm={6}>
               <Box m={3}>
-                <TextField id="portfolio_name" />
+                <TextField id="risk_assessment_name" />
               </Box>
             </Grid>
           </Grid>
@@ -242,32 +205,24 @@ class Portfolio_Create_Page extends React.Component {
             </Grid>
           </Grid>
           <Grid item container sm={8}>
-            <ThemeProvider theme={this.theme}>
-              <Grid sm={3}>
-                <Typography>Stock List</Typography>
-              </Grid>
-              <Grid sm={6}>
-                <Button
-                  color={"primary"}
-                  startIcon={<AddCircleOutlineIcon />}
-                  onClick={this.appendInput}
-                />
-                <Button
-                  color={"primary"}
-                  startIcon={<RemoveCircleOutlineIcon />}
-                  onClick={this.removeInput}
-                />
-              </Grid>
-            </ThemeProvider>
+            <Grid sm={3}>
+              <Box m={3}>
+                <Typography>Base Portfolio</Typography>
+              </Box>
+            </Grid>
+            <Grid sm={6}>
+              <Box m={3}>
+                <TextField id={`portfolio_name`} select>
+                  {this.state.portOption.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </Grid>
           </Grid>
         </Grid>
-        <Box m={5}>
-          {this.state.inputs.length > 0 && (
-            <Paper variant={"outlined"}>
-              <Container>{this.create_stock_list()}</Container>
-            </Paper>
-          )}
-        </Box>
         <Grid sm={2}>
           <ThemeProvider theme={this.theme}>
             <Button
@@ -284,4 +239,4 @@ class Portfolio_Create_Page extends React.Component {
   }
 }
 
-export default Portfolio_Create_Page;
+export default Risk_Assessment_Create_Page;

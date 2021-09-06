@@ -64,6 +64,18 @@ class Test_DBConnector:
         ]
         dbc.insert_strategy_stocks(stocks)
 
+    @pytest.mark.order5
+    def test_risk_assessment_table(self,database_setup):
+        dbc = database_setup
+        createdDate = datetime.datetime.strptime('2021-07-21','%Y-%m-%d')
+        dbc.create_risk_assessment(
+            assessment_name='a1',
+            createdDate=createdDate,
+            description='first',
+            portfolioId='p1'
+            )
+
+
 
     # def teardown_method(self):
     #     os.remove('./water-mons.sqllite')

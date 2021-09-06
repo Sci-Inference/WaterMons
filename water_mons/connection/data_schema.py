@@ -1,6 +1,7 @@
 import sqlalchemy
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.sql.roles import StrAsPlainColumnRole
 from sqlalchemy.sql.sqltypes import DateTime, INTEGER,TEXT
 from sqlalchemy import Column, Integer, String,DATETIME,FLOAT,null,ForeignKey
 
@@ -40,3 +41,13 @@ class Strategy_Stock(Base):
     createdDate = Column('created',DateTime)
     stock_signal = Column('signal',String)
     strategy_name = Column(Integer, ForeignKey('strategy.strategy_name'))
+
+
+
+class Risk_Assessment(Base):
+    __tablename__='risk_assessment'
+    uuidColumn = Column('risk_assessment_id',INTEGER,primary_key=True, autoincrement=True)
+    name = Column('assessment_name',String)
+    createdDate = Column('created',DateTime)
+    description = Column('description',TEXT)
+    basePortfolio = Column(String,ForeignKey('portfolio.portfolio_name'))
