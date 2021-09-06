@@ -6,9 +6,13 @@ import * as echarts from "echarts/core";
 class Efficient_Frontier extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      pieInfo: 'optimal',
+    };
     this.getFronterData = this.getFronterData.bind(this);
     this.draw = this.draw.bind(this);
     this.eChartsRef = React.createRef();
+    this.handleClick = this.handleClick.bind(this);
   }
   async componentDidMount() {
     let data = await this.getFronterData();
@@ -32,15 +36,29 @@ class Efficient_Frontier extends React.Component {
         endDate: this.props.endDate,
       }),
     }).then((d) => d.json());
-    console.log(data);
     return data;
   }
 
+  getWeightsData(weight,tickers){
+    console.log('getWeights');
+    let res = [];
+    tickers.map((e,ix)=>{
+      res.push({'value':weight[ix],'name':e})
+    })
+    return res
+  }
+
   draw(data) {
-    console.log(data);
+    console.log(data['weiLine'])
+    let pieWeight = 'optimal'
+    if (this.state.pieInfo == 'optimal'){
+      pieWeight = data['weights'];
+    }
+    else{
+      pieWeight = data['weiLine'][parseInt(this.state.pieInfo)];
+    }
     let option = {
       tooltip: {
-        trigger: "axis",
       },
       xAxis: {
         min: Math.min(...data["lineStd"]),
@@ -67,37 +85,50 @@ class Efficient_Frontier extends React.Component {
           },
         },
         {
-          name: '访问来源',
+          name: 'Optimal Weight',
           type: 'pie',
+          selectedMode: 'single',
+          selectedOffset: 30,
+          clockwise: true,
           radius: '25%',
           center: ['50%', '25%'],
-          data: [
-              {value: 1048, name: '搜索引擎'},
-              {value: 735, name: '直接访问'},
-              {value: 580, name: '邮件营销'},
-              {value: 484, name: '联盟广告'},
-              {value: 300, name: '视频广告'}
-          ],
-          // emphasis: {
-          //     itemStyle: {
-          //         shadowBlur: 10,
-          //         shadowOffsetX: 0,
-          //         shadowColor: 'rgba(0, 0, 0, 0.5)'
-          //     }
-          // }
+          label: {
+            show: true
+        },
+          emphasis: {
+            label: {
+                show: true
+            }
+          },
+          data: this.getWeightsData(pieWeight,data['tickers']),
       }
       ],
     };
-    console.log(option);
     this.eChartsRef.current
       ?.getEchartsInstance()
       .setOption(option, { notMerge: true });
   }
 
+  handleClick(params){
+    if (params.componentType =='series'){
+      if (params.componentSubType == 'line'){
+        this.setState({'pieInfo':params.dataIndex})
+      }
+    }
+    else{
+      if(params.componentType=='markPoint'){
+        this.setState({'pieInfo':'optimal'})
+      }
+    }
+  }
+
   render() {
     let option = {};
     console.log("render");
-    return <ReactEcharts option={option} ref={this.eChartsRef} />;
+    return <ReactEcharts option={option} ref={this.eChartsRef} 
+    onEvents={{
+      'click':this.handleClick,
+    }}/>;
   }
 }
 

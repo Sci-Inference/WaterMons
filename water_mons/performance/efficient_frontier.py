@@ -10,7 +10,7 @@ class Efficient_Frontier(object):
     def __init__(self) -> None:
         super().__init__()
         self.cla = None
-
+        self.tickers = None
 
     def CLA(self,df:pd.DataFrame,method:str):
         """Compute the Critical Line Algorithm for portfolio optmization.
@@ -33,6 +33,7 @@ class Efficient_Frontier(object):
             cla.min_volatility()
         
         self.cla = cla
+        self.tickers = cla.tickers
 
     def get_efficient_frontier(self):
         if self.cla is None:

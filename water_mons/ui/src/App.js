@@ -40,7 +40,7 @@ function BackTest() {
   return <h2>Back</h2>;
 }
 function RiskAssessment() {
-  return <Efficient_Frontier tickerList={['AT.To','BB.TO','CM.TO']} method={'sharpe'} startDate={'2021-03-01'} endDate={'2021-05-30'}/>;
+  return <Efficient_Frontier tickerList={['CSU.TO','BB.TO','CM.TO','SHOP.TO']} method={'sharpe'} startDate={'2021-03-01'} endDate={'2021-05-30'}/>;
 }
 
 function App() {

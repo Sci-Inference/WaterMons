@@ -44,11 +44,11 @@ def get_efficient_frontier():
         'par':ar,
         'pav':av,
         'psr':sr,
-        'weights':wei,
+        'weights':wei.tolist(),
         'lineRe':reLine,
         'lineStd':stdLine,
         'frontierLine': list(zip(stdLine,reLine)),
-        'lineWeiRe':weiLine[0],
-        'lineWeiStd':weiLine[1]
+        'weiLine':list(map(lambda x: x.tolist(),weiLine)),
+        'tickers':ef.tickers
     }
     return Response(json.dumps(output,default=str),mimetype='application/json')
