@@ -82,7 +82,7 @@ class Risk_Assessment_Create_Page extends React.Component {
   async handleSubmit() {
     let alertMsg = null;
     let assessmentName = document.querySelector("#risk_assessment_name").value;
-    let basePort = document.getElementById('portfolio_name').innerText;
+    let basePort = document.getElementById("portfolio_name").innerText;
     let desc = document.querySelector("#description").value;
     if (assessmentName == "" && alertMsg === null) {
       alertMsg = "Assessment name is required";
@@ -90,8 +90,9 @@ class Risk_Assessment_Create_Page extends React.Component {
     if (desc == "" && alertMsg === null) {
       alertMsg = "portfolio description is required";
     }
-    if (!this.state.portOption.includes(basePort)) 
-    {alertMsg='Base portfolio is required'};
+    if (!this.state.portOption.includes(basePort)) {
+      alertMsg = "Base portfolio is required";
+    }
     if (alertMsg != null) {
       alert(alertMsg);
       return;
@@ -101,7 +102,7 @@ class Risk_Assessment_Create_Page extends React.Component {
     let insertData = {
       name: assessmentName,
       description: desc,
-      basePort:basePort,
+      basePort: basePort,
       createdDate: `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`,
     };
 
@@ -120,8 +121,6 @@ class Risk_Assessment_Create_Page extends React.Component {
       this.props.history.goBack();
     }
   }
-
-
 
   render() {
     console.log("render");
