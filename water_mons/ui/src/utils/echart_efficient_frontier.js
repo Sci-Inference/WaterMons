@@ -49,7 +49,6 @@ class Efficient_Frontier extends React.Component {
   }
 
   draw(data) {
-    console.log(data['weiLine'])
     let pieWeight = 'optimal'
     if (this.state.pieInfo == 'optimal'){
       pieWeight = data['weights'];

@@ -8,13 +8,26 @@ from water_mons.connection.online_stock_connector import StockConnector
 from water_mons.performance.performance import Strategy_Performance,Portfolio_Performance,PerformanceBase
 
 
-
 def read_config():
     with open("config.yaml", 'r') as stream:
         try:
             return yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
+
+
+def get_assessment(conStr,aName):
+    dbc = DBConnector(conStr)
+    session = dbc.session()
+    db_data = list(
+        map(
+            lambda x: dbc.sqlalchmey_to_dict(x),session.query(Risk_Assessment).filter(and_(
+                Risk_Assessment.name == aName
+            )).all()
+            )
+        )
+    session.close()
+    return db_data
 
 
 def get_portfolio(conStr, pName, startDate, endDate):
@@ -100,3 +113,19 @@ def performance_to_detail_rows(dataDict):
     return res
 
 
+def port_holding(df):
+    res = {}
+    cacheDate = None
+    for i in df.to_records():
+        if (cacheDate in res) and (i[2] not in list(res.keys())):
+            res[i[2]] = {}
+            res[i[2]].update(res[cacheDate])
+        if i[2] in list(res.keys()):
+            if i[6] in list(res[i[2]].keys()):
+                res[i[2]][i[6]] += i[5]
+            else:
+                res[i[2]][i[6]] = i[5]
+        else:
+            res[i[2]] = {i[6]:i[5]}
+        cacheDate = i[2]
+    return res
