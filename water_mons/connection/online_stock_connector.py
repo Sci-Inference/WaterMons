@@ -14,7 +14,7 @@ class StockConnector(object):
         df = self.ticker.history(
             start=startDate,
             end=endDate,
-            interval=interval)
+            interval=interval).dropna()
         df['ticker'] = self._ticker
         df = pd.DataFrame(df.to_records())
         df = df[df['Date'].dt.strftime('%Y-%m-%d') >= startDate]

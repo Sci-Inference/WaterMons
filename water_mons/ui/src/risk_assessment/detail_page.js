@@ -50,6 +50,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
       performanceLineBarControl:'line',
       performanceLineBarMode:false, // cumulative is true
       efficientFrontierWeight:[],
+      holdingPercentageData:[],
       efficientFrontierTicker:[],
       compositionTableRow: [],
       compositionTableCol: [],
@@ -73,6 +74,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
     this.get_portfolio_stocks = this.get_portfolio_stocks.bind(this);
     this.get_portfolio_performance = this.get_portfolio_performance.bind(this);
     this.get_efficient_frontier_percent = this.get_efficient_frontier_percent.bind(this);
+    this.get_holding_percentage_data = this.get_holding_percentage_data.bind(this);
     this.handle_holding_percent_radio_change = this.handle_holding_percent_radio_change.bind(this);
     this.handle_performance_line_bar_change = this.handle_performance_line_bar_change.bind(this);
     this.handle_performance_line_bar_mode_change = this.handle_performance_line_bar_mode_change.bind(this);
@@ -88,7 +90,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
 
   async componentDidMount() {
     this.update_all();
-    console.log('fronteir')
+    console.log('frontier')
     console.log(this.fronteirRef.current)
   }
 
@@ -99,6 +101,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
   async update_all() {
     await this.get_portfolio_stocks();
     await this.get_portfolio_performance();
+    await this.get_holding_percentage_data(this.state.holdingPercentRadio);
   }
 
   async get_portfolio_performance(){
@@ -118,6 +121,34 @@ class Risk_Assessment_Detail_Page extends React.Component {
       }
     ).then((d) => d.json());
     this.setState({ portfolioCompoRow: data });
+  }
+
+  async get_holding_percentage_data(mode){
+    let queryInfo = {
+      assessment_name: this.state.assessmentName,
+      startDate: "2021-01-01",
+      endDate: "2021-12-31",
+      mode:mode
+    };
+    const data = await fetch(
+      "http://localhost:5000/db/getPortfolioHoldingPercent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(queryInfo),
+      }
+    ).then((d) => d.json());
+    console.log('holding')
+    console.log(data)
+    let res = [];
+    Object.keys(data).map((e)=>{
+      if (e != 'Date'){
+        res.push([e,data[e]])
+      }
+    })
+    this.setState({ holdingPercentageData: res });
   }
 
   async get_portfolio_stocks() {
@@ -209,6 +240,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
   handle_holding_percent_radio_change (event) {
     console.log(event.target.value)
     this.setState({holdingPercentRadio:event.target.value});
+    this.get_holding_percentage_data(event.target.value)
   };
 
   handle_performance_line_bar_change (event) {
@@ -313,7 +345,9 @@ class Risk_Assessment_Detail_Page extends React.Component {
                     label="Cumulative Performance"
                   />
                 </FormControl>
-                <Basic_Line data={LineData} xCol={"Date"} />
+                {this.state.performanceLineBarControl === 'line'? 
+                <Basic_Line data={LineData} xCol={"Date"} />:
+                <Basic_Bar data={LineData} xCol={"Date"} />}
               </Box>
             </Grid>
             <Grid sm={6}>
@@ -343,7 +377,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
                     />
                   </RadioGroup>
                 </FormControl>
-                <Basic_Pie data={PieData} />
+                <Basic_Pie data={this.state.holdingPercentageData} />
               </Box>
             </Grid>
           </Grid>

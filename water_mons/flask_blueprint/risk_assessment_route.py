@@ -16,6 +16,23 @@ from water_mons.performance.efficient_frontier import Efficient_Frontier
 app =  Blueprint('risk_assessment',__name__)
 
 
+
+
+def get_portfolio_stocks_by_assessment_name(startDate, endDate, conStr, pName):
+    dbc = DBConnector(conStr)
+    session = dbc.session()
+    portValue = list(
+        map(
+            lambda x: dbc.sqlalchmey_to_dict(x),session.query(Portfolio_Stock).filter(and_(
+                Portfolio_Stock.portfolio_name == pName,
+                Portfolio_Stock.createdDate.between(startDate,endDate)
+            )).all()
+            )
+        )
+    session.close()
+    df = pd.DataFrame(portValue)
+    return df
+
 @app.route('/risk/efficientFrontier',methods=['POST','GET'])
 def get_efficient_frontier():
     data = request.json
@@ -84,18 +101,7 @@ def get_base_portfolio_stocks():
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
     assValue = get_assessment(conStr=conStr,aName=aName)
     pName = assValue[0]['basePortfolio']
-    dbc = DBConnector(conStr)
-    session = dbc.session()
-    portValue = list(
-        map(
-            lambda x: dbc.sqlalchmey_to_dict(x),session.query(Portfolio_Stock).filter(and_(
-                Portfolio_Stock.portfolio_name == pName,
-                Portfolio_Stock.createdDate.between(startDate,endDate)
-            )).all()
-            )
-        )
-    session.close()
-    df = pd.DataFrame(portValue)
+    df =df = get_portfolio_stocks_by_assessment_name(startDate, endDate, conStr, pName)
     df['stock_option'] =  df.stock_option.apply(lambda x: 1 if x=='buy' else -1)
     df['purchaseNumber'] = df['stock_option'] * df['purchaseNumber']
     res = pd.DataFrame.from_dict(port_holding(df),'index')
@@ -112,7 +118,6 @@ def get_base_portfolio_performance():
     startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
-    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
     assValue = get_assessment(conStr=conStr,aName=aName)
     pName = assValue[0]['basePortfolio']
     dataDict = {}
@@ -127,4 +132,35 @@ def get_base_portfolio_performance():
 @app.route("/db/getPortfolioHoldingPercent",methods=['POST','GET'])
 def get_portfolio_holding_percent():
     data = request.json
-    
+    aName = data['assessment_name']
+    mode = data['mode']
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    assValue = get_assessment(conStr=conStr,aName=aName)
+    pName = assValue[0]['basePortfolio']
+    df = get_portfolio_stocks_by_assessment_name(startDate, endDate, conStr, pName)
+    df['stock_option'] =  df.stock_option.apply(lambda x: 1 if x=='buy' else -1)
+    df['purchaseNumber'] = df['stock_option'] * df['purchaseNumber']
+    res = pd.DataFrame.from_dict(port_holding(df),'index')
+    res = pd.DataFrame(res.to_records()).rename(columns={'index':'Date'}).fillna(0)
+    res['Date'] = res['Date'].dt.strftime("%Y-%m-%d")
+    res = res[res['Date'] == res['Date'].max()]
+    if mode == 'share':
+        return Response(json.dumps(res.to_dict('records')[0],default=str),mimetype='application/json')
+    else:
+        tickers = df.ticker.unique()
+        print(tickers)
+        priceDict = {}
+        for t in tickers:
+            sc = StockConnector(t,stockConStr)
+            stockDf = sc.get_data(data['startDate'],data['endDate'])
+            priceDict[t] = stockDf[stockDf['Date'] == stockDf['Date'].max()].Close.values[0]
+        if mode == 'value':
+            return Response(json.dumps(priceDict,default=str),mimetype='application/json')
+        else:
+            res = res.to_dict('records')[0]
+            for r in tickers:
+                res[r] *= priceDict[r]
+            return Response(json.dumps(res,default=str),mimetype='application/json')
