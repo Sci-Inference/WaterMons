@@ -112,9 +112,9 @@ def get_base_portfolio_performance():
     startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
     endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
     conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
     assValue = get_assessment(conStr=conStr,aName=aName)
     pName = assValue[0]['basePortfolio']
-    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
     dataDict = {}
     p = get_portfolio(conStr, pName, startDate,endDate)
     perform = p.performance()
@@ -122,3 +122,9 @@ def get_base_portfolio_performance():
     res = performance_to_detail_rows(dataDict)
     print(res)
     return Response(json.dumps(res,default=str),mimetype='application/json')
+
+
+@app.route("/db/getPortfolioHoldingPercent",methods=['POST','GET'])
+def get_portfolio_holding_percent():
+    data = request.json
+    

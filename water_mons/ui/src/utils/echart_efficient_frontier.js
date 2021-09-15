@@ -36,6 +36,7 @@ class Efficient_Frontier extends React.Component {
         endDate: this.props.endDate,
       }),
     }).then((d) => d.json());
+    
     return data;
   }
 
@@ -67,7 +68,7 @@ class Efficient_Frontier extends React.Component {
         min: Math.min(...data["lineRe"]),
         type: "value",
       },
-      grid: {top: '40%'},
+      grid: {top: '40%',down:'60%'},
       series: [
         {
           type: "line",
@@ -108,10 +109,12 @@ class Efficient_Frontier extends React.Component {
       .setOption(option, { notMerge: true });
   }
 
-  handleClick(params){
+  async handleClick(params){
+    let OptType = 'optimal';
     if (params.componentType =='series'){
       if (params.componentSubType == 'line'){
         this.setState({'pieInfo':params.dataIndex})
+        OptType = 'custom'
       }
     }
     else{
@@ -119,12 +122,20 @@ class Efficient_Frontier extends React.Component {
         this.setState({'pieInfo':'optimal'})
       }
     }
+    // callback
+    if (this.props.onClick !== undefined){
+      let data = await this.getFronterData();
+      let pieWeight = data['weights'];
+      if (OptType == 'custom') pieWeight = data['weiLine'][parseInt(params.dataIndex)];
+      this.props.onClick({'weights':pieWeight,'tickers':data['tickers']});
+    }
   }
 
   render() {
     let option = {};
     console.log("render");
     return <ReactEcharts option={option} ref={this.eChartsRef} 
+    style={{height: '100%'}}
     onEvents={{
       'click':this.handleClick,
     }}/>;

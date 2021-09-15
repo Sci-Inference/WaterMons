@@ -3,80 +3,66 @@ import { render } from "react-dom";
 import ReactEcharts from "echarts-for-react";
 import * as echarts from "echarts/core";
 
-class Basic_Line extends React.Component {
+class Basic_Pie extends React.Component {
   constructor(props) {
     super(props);
-    this.getAxisData = this.getAxisData.bind(this);
     this.getSeriesData = this.getSeriesData.bind(this);
-    this.getLegend = this.getLegend.bind(this);
     this.draw = this.draw.bind(this);
     this.eChartsRef = React.createRef();
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.draw();
   }
-  componentDidUpdate(){
-      this.draw();
+  componentDidUpdate() {
+    this.draw();
   }
 
-  getLegend(){
-    if(this.props.data[0]===undefined) return
-    let yCol = Object.keys(this.props.data[0]).filter(d => d != this.props.xCol)
-    return yCol
+  getSeriesData() {
+    if (this.props.data === undefined) return;
+    let series = []
+    this.props.data.map((d)=>{
+      let tmp = {value:d[1],name:d[0]}
+      series.push(tmp)
+    })
+    return series;
   }
 
-  getAxisData(){
-      let xData = this.props.data.map((d)=>{
-          return (
-              d[this.props.xCol]
-          )
-      })
-      return {
-          type:"category",
-          data:xData
-      }
-  }
-
-  getSeriesData(){
-      if(this.props.data[0]===undefined) return
-      let yCol = Object.keys(this.props.data[0]).filter(d => d != this.props.xCol)
-      let series = []
-      yCol.map((c)=>{
-          let yData = this.props.data.map((d)=>{
-              return d[c]
-          })
-          let tmp = {
-              name:c,
-              data:yData,
-              type:'line'
-          }
-          series.push(tmp)
-      })
-      return series
-  }
-
-  draw(){
+  draw() {
     let option = {
-        tooltip: {},
-        xAxis: this.getAxisData(),
-        yAxis: {
-          type: "value",
-          splitLine: {},
-        },
-        legend: { data: this.getLegend() },
-        series: this.getSeriesData(),
-      }
-    console.log(option)
-    this.eChartsRef.current?.getEchartsInstance().setOption(option,{notMerge:true})
+      tooltip: {
+          trigger: 'item'
+      },
+      legend: {
+          orient: 'vertical',
+          left: 'left',
+      },
+      series: [
+          {
+              type: 'pie',
+              radius: '50%',
+              data: this.getSeriesData(),
+              emphasis: {
+                  itemStyle: {
+                      shadowBlur: 10,
+                      shadowOffsetX: 5,
+                      shadowColor: 'rgba(0, 0, 0, 0.5)'
+                  }
+              }
+          }
+      ]
   }
-
+    console.log(option);
+    this.eChartsRef.current
+      ?.getEchartsInstance()
+      .setOption(option, { notMerge: true });
+  }
 
   render() {
-    let option = {}
-    console.log('render')
-    return  <ReactEcharts option={option} ref={this.eChartsRef}/>
+    let option = {};
+    console.log("render");
+    return <ReactEcharts option={option} ref={this.eChartsRef} />;
   }
 }
 
-export default Basic_Line;
+export default Basic_Pie;
