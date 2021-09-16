@@ -27,19 +27,6 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Switch from '@material-ui/core/Switch';
 
 
-let LineData = [
-  { Date: "2021-01-01", "BB.TO": 11 },
-  { Date: "2021-01-02", "BB.TO": 11 },
-  { Date: "2021-01-03", "BB.TO": 11 },
-];
-
-let PieData = [
-  ['BB.TO',120],
-  ['AT.TO',1020],
-  ['CM.TO',130]
-]
-
-
 class Risk_Assessment_Detail_Page extends React.Component {
   constructor(props) {
     super(props);
@@ -49,7 +36,10 @@ class Risk_Assessment_Detail_Page extends React.Component {
       holdingPercentRadio:'share',
       performanceLineBarControl:'line',
       performanceLineBarMode:false, // cumulative is true
+      performanceLineBarData:[],
       efficientFrontierWeight:[],
+      startDate:new Date("2021-07-01"),
+      endDate:new Date("2021-07-31"),
       holdingPercentageData:[],
       efficientFrontierTicker:[],
       compositionTableRow: [],
@@ -75,6 +65,9 @@ class Risk_Assessment_Detail_Page extends React.Component {
     this.get_portfolio_performance = this.get_portfolio_performance.bind(this);
     this.get_efficient_frontier_percent = this.get_efficient_frontier_percent.bind(this);
     this.get_holding_percentage_data = this.get_holding_percentage_data.bind(this);
+    this.get_performance_line_bar_data = this.get_performance_line_bar_data.bind(this);
+    this.handleendDateChange = this.handleendDateChange.bind(this);
+    this.handlestartDateChange = this.handlestartDateChange.bind(this);
     this.handle_holding_percent_radio_change = this.handle_holding_percent_radio_change.bind(this);
     this.handle_performance_line_bar_change = this.handle_performance_line_bar_change.bind(this);
     this.handle_performance_line_bar_mode_change = this.handle_performance_line_bar_mode_change.bind(this);
@@ -98,17 +91,25 @@ class Risk_Assessment_Detail_Page extends React.Component {
     console.log(this.state.efficientFrontierTicker)
   }
 
-  async update_all() {
-    await this.get_portfolio_stocks();
-    await this.get_portfolio_performance();
-    await this.get_holding_percentage_data(this.state.holdingPercentRadio);
+  async update_all(
+    startDate=this.state.startDate.toISOString().split(["T"])[0], 
+    endDate = this.state.endDate.toISOString().split(["T"])[0]
+    ) {
+    console.log(startDate)
+    await this.get_portfolio_stocks(startDate,endDate);
+    await this.get_portfolio_performance(startDate,endDate);
+    await this.get_holding_percentage_data(this.state.holdingPercentRadio,startDate,endDate);
+    await this.get_performance_line_bar_data(this.state.performanceLineBarMode,startDate,endDate);
   }
 
-  async get_portfolio_performance(){
+  async get_portfolio_performance(
+    startDate=this.state.startDate.toISOString().split(["T"])[0], 
+    endDate = this.state.endDate.toISOString().split(["T"])[0]
+    ){
     let queryInfo = {
       assessment_name: this.state.assessmentName,
-      startDate: "2021-01-01",
-      endDate: "2021-12-31",
+      startDate: startDate,
+      endDate: endDate,
     };
     const data = await fetch(
       "http://localhost:5000/db/getBasePortfolioPerformance",
@@ -123,11 +124,39 @@ class Risk_Assessment_Detail_Page extends React.Component {
     this.setState({ portfolioCompoRow: data });
   }
 
-  async get_holding_percentage_data(mode){
+  async get_performance_line_bar_data(
+    mode,
+    startDate=this.state.startDate.toISOString().split(["T"])[0],
+    endDate = this.state.endDate.toISOString().split(["T"])[0]
+    ){
     let queryInfo = {
       assessment_name: this.state.assessmentName,
-      startDate: "2021-01-01",
-      endDate: "2021-12-31",
+      startDate: startDate,
+      endDate: endDate,
+      mode:mode
+    };
+    const data = await fetch(
+      "http://localhost:5000/db/getPerformanceLineBar",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(queryInfo),
+      }
+    ).then((d) => d.json());
+    this.setState({'performanceLineBarData':data})
+  }
+
+  async get_holding_percentage_data(
+    mode,
+    startDate=this.state.startDate.toISOString().split(["T"])[0], 
+    endDate = this.state.endDate.toISOString().split(["T"])[0]
+    ){
+    let queryInfo = {
+      assessment_name: this.state.assessmentName,
+      startDate: startDate,
+      endDate: endDate,
       mode:mode
     };
     const data = await fetch(
@@ -151,11 +180,14 @@ class Risk_Assessment_Detail_Page extends React.Component {
     this.setState({ holdingPercentageData: res });
   }
 
-  async get_portfolio_stocks() {
+  async get_portfolio_stocks(
+    startDate=this.state.startDate.toISOString().split(["T"])[0], 
+    endDate = this.state.endDate.toISOString().split(["T"])[0]
+    ) {
     let queryInfo = {
       assessment_name: this.state.assessmentName,
-      startDate: "2021-01-01",
-      endDate: "2021-12-31",
+      startDate: startDate,
+      endDate: endDate,
     };
     const data = await fetch(
       "http://localhost:5000/db/getBasePortfolioStocks",
@@ -237,6 +269,17 @@ class Risk_Assessment_Detail_Page extends React.Component {
     );
   }
 
+
+  handlestartDateChange(date) {
+    this.setState({ startDate: date });
+    this.update_all(date,this.state.endDate);
+  }
+
+  handleendDateChange(date) {
+    this.setState({ endDate: date });
+    this.update_all(this.state.startDate,date);
+  }
+
   handle_holding_percent_radio_change (event) {
     console.log(event.target.value)
     this.setState({holdingPercentRadio:event.target.value});
@@ -250,6 +293,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
 
   handle_performance_line_bar_mode_change(event){
     this.setState({performanceLineBarMode:event.target.checked});
+    this.get_performance_line_bar_data(event.target.checked);
   }
 
   render() {
@@ -301,8 +345,8 @@ class Risk_Assessment_Detail_Page extends React.Component {
                 <Efficient_Frontier
                   tickerList={this.state.compositionTickers}
                   method={"sharpe"}
-                  startDate={"2021-01-01"}
-                  endDate={"2021-01-21"}
+                  startDate={this.state.startDate.toISOString().split(["T"])[0]}
+                  endDate={this.state.endDate.toISOString().split(["T"])[0]}
                   ref={this.fronteirRef}
                   onClick={this.get_efficient_frontier_percent}
                 />
@@ -346,8 +390,8 @@ class Risk_Assessment_Detail_Page extends React.Component {
                   />
                 </FormControl>
                 {this.state.performanceLineBarControl === 'line'? 
-                <Basic_Line data={LineData} xCol={"Date"} />:
-                <Basic_Bar data={LineData} xCol={"Date"} />}
+                <Basic_Line data={this.state.performanceLineBarData} xCol={"Date"} />:
+                <Basic_Bar data={this.state.performanceLineBarData} xCol={"Date"} />}
               </Box>
             </Grid>
             <Grid sm={6}>

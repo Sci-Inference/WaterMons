@@ -164,3 +164,41 @@ def get_portfolio_holding_percent():
             for r in tickers:
                 res[r] *= priceDict[r]
             return Response(json.dumps(res,default=str),mimetype='application/json')
+
+
+@app.route("/db/getPerformanceLineBar",methods=['POST','GET'])
+def get_performance_line_bar():
+    print('line bar')
+    data = request.json
+    aName = data['assessment_name']
+    mode = data['mode']
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    stockConStr = read_config()['data_connection']['STOCK_CONNECTION']
+    assValue = get_assessment(conStr=conStr,aName=aName)
+    pName = assValue[0]['basePortfolio']
+    df = get_portfolio_stocks_by_assessment_name(startDate, endDate, conStr, pName)
+    p = Portfolio_Performance(conStr=stockConStr)
+    for i in df.to_dict('records'):
+        p.append_ticker(
+            ticker = i['ticker'],
+            createDate=i['createdDate'].strftime('%Y-%m-%d'),
+            option=i['stock_option'],
+            price=i['purchasePrice'],
+            number=i['purchaseNumber']
+            )
+    pValue = padding_period_eval(p,startDate,endDate)
+    df = pd.DataFrame(pd.DataFrame.from_dict(pValue,'index').to_records())
+    if mode:
+        df['Close'] = df['portfolio_value'] + df['holding'] + df['purchase']
+        df = df[['index','Close']]
+        df['ticker'] = 'Base'
+        df.columns = ['Date','Close','ticker']
+    else:
+        df['Close'] = df['portfolio_value'] + df['holding']
+        df = df[['index','Close']]
+        df['ticker'] = 'Base'
+        df.columns = ['Date','Close','ticker']
+    res = pd.DataFrame(df.pivot('Date','ticker','Close').to_records()).dropna().to_dict('records')
+    return Response(json.dumps(res,default=str),mimetype='application/json')
