@@ -63,6 +63,19 @@ class DBConnector(object):
         session.commit()  
 
 
+    def create_back_test(self,backtets_name:str,description:str,strategyId:str,createdDate: datetime.datetime = datetime.datetime.now()):
+        session = self.session()
+        data = BackTest(
+            name=backtets_name, 
+            createdDate=createdDate,
+            description=description,
+            baseStrategy=strategyId)
+        session.add(data)
+        session.commit()  
+
+
+
+
     def sqlalchmey_to_dict(self, obj) -> dict:
         return {c.key: getattr(obj, c.key)
                 for c in inspect(obj).mapper.column_attrs}

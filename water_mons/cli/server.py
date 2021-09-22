@@ -13,13 +13,14 @@ from flask import Flask, send_from_directory
 from water_mons.connection.data_schema import *
 from water_mons.connection.sqlalchemy_connector import DBConnector
 from water_mons.connection.online_stock_connector import StockConnector
-from water_mons.flask_blueprint import portfolio_route,strategy_route,risk_assessment_route
+from water_mons.flask_blueprint import portfolio_route,strategy_route,risk_assessment_route,back_test_route
 from water_mons.performance.performance import Strategy_Performance,Portfolio_Performance,PerformanceBase
 
 app = Flask(__name__, static_folder='../ui/build')
 app.register_blueprint(portfolio_route.app)
 app.register_blueprint(strategy_route.app)
 app.register_blueprint(risk_assessment_route.app)
+app.register_blueprint(back_test_route.app)
 cors = CORS(app)
 
 def read_config():

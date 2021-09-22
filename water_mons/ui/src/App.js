@@ -16,6 +16,8 @@ import Strategy_Landing_Page from "./strategy/landing_page";
 import Strategy_Insert_Page from "./strategy/insert_page";
 import Strategy_Create_Page from "./strategy/create_page";
 import Strategy_Detail_Page from './strategy/detail_page';
+import BackTest_Create_Page from './back_test/create_page';
+import BackTest_Landing_Page from './back_test/landing_page';
 import Risk_Assessment_Create_Page from './risk_assessment/create_page';
 import Risk_Assessment_Detail_Page from './risk_assessment/detail_page';
 import Risk_Assessment_Landing_Page from './risk_assessment/landing_page';
@@ -68,10 +70,12 @@ function App() {
                 <Route path="/strategy/detail/:name" component={Strategy_Detail_Page}/>
               </Route>
               <Route path="/back-test">
-                <BackTest />
+                <Route exact path="/back-test" component={BackTest_Landing_Page}/>
+                <Route exact path="/back-test/create" component={BackTest_Create_Page}/>
+                <Route path="/back-test/detail/:name" component={Risk_Assessment_Detail_Page}/>
               </Route>
               <Route path="/assessment" component={Risk_Assessment_Landing_Page}>
-              <Route exact path="/assessment" component={Risk_Assessment_Landing_Page}/>
+                <Route exact path="/assessment" component={Risk_Assessment_Landing_Page}/>
                 <Route exact path="/assessment/create" component={Risk_Assessment_Create_Page}/>
                 <Route path="/assessment/detail/:name" component={Risk_Assessment_Detail_Page}/>
               </Route>

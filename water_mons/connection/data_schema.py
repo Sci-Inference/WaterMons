@@ -51,3 +51,12 @@ class Risk_Assessment(Base):
     createdDate = Column('created',DateTime)
     description = Column('description',TEXT)
     basePortfolio = Column(String,ForeignKey('portfolio.portfolio_name'))
+
+
+class BackTest(Base):
+    __tablename__ = 'backtest'
+    uuidColumn = Column('backtest_id',INTEGER,primary_key=True, autoincrement=True)
+    name = Column('backtest_name',String)
+    createdDate = Column('created',DateTime)
+    description = Column('description',TEXT)
+    baseStrategy = Column(String,ForeignKey('strategy.strategy_name'))

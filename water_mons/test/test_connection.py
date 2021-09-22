@@ -75,6 +75,17 @@ class Test_DBConnector:
             portfolioId='p1'
             )
 
+    @pytest.mark.order6
+    def test_back_test_table(self,database_setup):
+        dbc = database_setup
+        createdDate = datetime.datetime.strptime('2021-07-21','%Y-%m-%d')
+        dbc.create_back_test(
+            backtets_name='b1',
+            createdDate=createdDate,
+            description='first',
+            strategyId='s1'
+            )
+
 
 
     # def teardown_method(self):
