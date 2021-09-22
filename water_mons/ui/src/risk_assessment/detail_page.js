@@ -301,7 +301,7 @@ class Risk_Assessment_Detail_Page extends React.Component {
       <div>
         <Grid container spacing={12}>
           <Grid item container sm={12} justifyContent="center">
-            <h1>Portfolio: {this.state.assessmentName}</h1>
+            <h1>Risk Assessment: {this.state.assessmentName}</h1>
           </Grid>
           <Grid spacing={12} container justifyContent="center">
             <Accordion rounded>

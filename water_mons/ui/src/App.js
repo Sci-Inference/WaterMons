@@ -24,6 +24,7 @@ import Risk_Assessment_Landing_Page from './risk_assessment/landing_page';
 import Basic_Line from './utils/echart_line';
 import { Fragment } from 'react';
 import Efficient_Frontier from './utils/echart_efficient_frontier';
+import BackTest_Detail_Page from './back_test/detail_page';
 
 
 
@@ -72,7 +73,7 @@ function App() {
               <Route path="/back-test">
                 <Route exact path="/back-test" component={BackTest_Landing_Page}/>
                 <Route exact path="/back-test/create" component={BackTest_Create_Page}/>
-                <Route path="/back-test/detail/:name" component={Risk_Assessment_Detail_Page}/>
+                <Route path="/back-test/detail/:name" component={BackTest_Detail_Page}/>
               </Route>
               <Route path="/assessment" component={Risk_Assessment_Landing_Page}>
                 <Route exact path="/assessment" component={Risk_Assessment_Landing_Page}/>

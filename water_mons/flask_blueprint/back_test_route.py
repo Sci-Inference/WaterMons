@@ -22,7 +22,7 @@ def get_backtest_by_backtest_name(startDate,endDate,conStr,sName):
     portValue = list(
         map(
             lambda x: dbc.sqlalchmey_to_dict(x),session.query(BackTest).filter(and_(
-                BackTest.backtest_name == sName,
+                BackTest.name == sName,
                 BackTest.createdDate.between(startDate,endDate)
             )).all()
             )
@@ -32,8 +32,8 @@ def get_backtest_by_backtest_name(startDate,endDate,conStr,sName):
     return df
 
 
-def get_strategy_stocks_by_backtest_name(startDate,endDate,conStr,sName):
-    df = get_backtest_by_backtest_name(startDate,endDate,conStr,sName)
+def get_strategy_stocks_by_backtest_name(startDate,endDate,conStr,bName):
+    df = get_backtest_by_backtest_name(startDate,endDate,conStr,bName)
     dbc = DBConnector(conStr)
     strategyName = df['baseStrategy'].unique()[0]
     session = dbc.session()
@@ -77,6 +77,13 @@ def create_backtest():
 
 @app.route('/db/getBaseStrategyStocks',methods=['POST','GET'])
 def get_base_strategy_stocks():
-    pass
+    data = request.json
+    bName = data['backtest_name']
+    startDate = datetime.datetime.strptime(data['startDate'],'%Y-%m-%d')
+    endDate = datetime.datetime.strptime(data['endDate'],'%Y-%m-%d')
+    conStr = read_config()['data_connection']['DATABASE_CONNECTION']
+    df = get_strategy_stocks_by_backtest_name(startDate,endDate,conStr,bName)
+    return Response(json.dumps(df.to_dict('records'),default=str),mimetype='application/json')
+
 
 
